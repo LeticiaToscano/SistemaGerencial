@@ -7,522 +7,605 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0A0D0C;--bg-2:#0E1311;--surface:#131A17;--surface-2:#182119;
-    --border:rgba(255,255,255,.07);--border-strong:rgba(255,255,255,.13);
-    --text:#EAF0EC;--text-dim:#93A29A;--text-faint:#5E6E66;
-    --green:#2EE59D;--green-deep:#0F3D2E;--amber:#F5B841;--amber-deep:#3A2E10;
-    --red:#F65C6E;--red-deep:#3A1620;--blue:#4C86C6;--purple:#9B8CFF;
-    --radius:14px;--font:'Sora',system-ui,sans-serif;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{font-family:var(--font);background:
-      radial-gradient(1200px 600px at 100% -10%,rgba(46,229,157,.06),transparent 60%),var(--bg);
-    color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased}
-  button{font-family:inherit;cursor:pointer}
-  .hidden{display:none!important}
+:root{
+  --preto:#050807;--carta:#0A100E;--carta2:#0D1412;--fundo-suave:#0B1210;
+  --linha:rgba(255,255,255,.055);--linha2:rgba(255,255,255,.10);
+  --txt:#E9F1EC;--dim:#7E8F87;--fraco:#4E5D56;
+  --verde:#2EE59D;--verde-claro:#5BFFB8;--verde-fundo:rgba(46,229,157,.10);
+  --ciano:#22D3EE;--ciano-fundo:rgba(34,211,238,.12);
+  --vermelho:#FF5C6A;--vermelho-fundo:rgba(255,92,106,.09);
+  --ambar:#F5B841;--ambar-fundo:rgba(245,184,65,.11);
+  --r:18px;--fonte:'Sora',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fonte);background:var(--preto);color:var(--txt);font-size:14px;
+  -webkit-font-smoothing:antialiased;min-height:100vh;
+  background-image:
+    radial-gradient(900px 520px at 88% -8%, rgba(46,229,157,.10), transparent 62%),
+    radial-gradient(700px 460px at 4% 4%, rgba(34,211,238,.045), transparent 60%);
+  background-attachment:fixed}
+button{font-family:inherit;cursor:pointer}
+.esc{display:none!important}
+.tela{max-width:1180px;margin:0 auto;padding:22px 20px 90px}
 
-  /* LOGIN */
-  #login{min-height:100vh;display:grid;place-items:center;padding:24px}
-  .login-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--border);
-    border-radius:18px;padding:34px 30px}
-  .brand-lg{display:flex;align-items:center;gap:12px;margin-bottom:26px}
-  .mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#2EE59D,#12b877);
-    display:grid;place-items:center}
-  .brand-lg .n{font-size:17px;font-weight:800;letter-spacing:-.4px}
-  .brand-lg .s{font-size:10px;color:var(--green);letter-spacing:2px;font-weight:700}
-  .login-card h1{font-size:16px;font-weight:700;margin-bottom:4px}
-  .login-card p{font-size:12.5px;color:var(--text-dim);margin-bottom:22px}
-  .field{margin-bottom:14px}
-  .field label{display:block;font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:6px}
-  .field input{width:100%;background:var(--bg);border:1px solid var(--border-strong);border-radius:10px;
-    padding:11px 13px;color:var(--text);font-size:14px;font-family:inherit}
-  .field input:focus{outline:none;border-color:var(--green)}
-  .btn-primary{width:100%;background:var(--green);color:#04140d;border:none;border-radius:10px;
-    padding:12px;font-size:14px;font-weight:700;margin-top:8px}
-  .login-err{color:var(--red);font-size:12.5px;margin-top:12px;min-height:16px;line-height:1.5}
+/* --------- cartão base --------- */
+.cx{background:linear-gradient(180deg,var(--carta),var(--carta2));
+  border:1px solid var(--linha);border-radius:var(--r);position:relative;overflow:hidden}
+.cx-luz::before{content:"";position:absolute;inset:-40% -30% auto auto;width:60%;height:180%;
+  background:radial-gradient(closest-side,rgba(46,229,157,.10),transparent 70%);pointer-events:none}
 
-  /* SHELL */
-  #app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
-  .sidebar{background:var(--bg-2);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column}
-  .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 20px}
-  .brand .n{font-size:14px;font-weight:800}
-  .brand .s{font-size:9px;color:var(--green);letter-spacing:1.5px;font-weight:700}
-  .nav{display:flex;flex-direction:column;gap:2px;flex:1}
-  .nav-label{font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-faint);
-    font-weight:700;padding:14px 11px 5px}
-  .nav-label:first-child{padding-top:2px}
-  .nav-item{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:10px;background:none;
-    border:none;color:var(--text-dim);font-size:13.5px;font-weight:600;text-align:left;width:100%}
-  .nav-item svg{width:18px;height:18px;transform-origin:center}
-  .nav-item:hover{background:var(--surface);color:var(--text)}
-  .nav-item.active{background:var(--green-deep);color:var(--green)}
-  .foot{border-top:1px solid var(--border);padding-top:12px;margin-top:12px}
-  .user-chip{display:flex;align-items:center;gap:10px;padding:6px 8px}
-  .avatar{width:32px;height:32px;border-radius:9px;background:var(--surface-2);display:grid;place-items:center;
-    font-size:12px;font-weight:700;color:var(--green)}
-  .u-name{font-size:12.5px;font-weight:600;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .u-role{font-size:10px;color:var(--text-faint)}
-  .u-ver{font-size:9px;color:var(--text-faint);letter-spacing:.3px;margin-top:1px}
-  .btn-logout{margin-top:8px;width:100%;background:none;border:1px solid var(--border-strong);color:var(--text-dim);
-    border-radius:9px;padding:8px;font-size:12px;font-weight:600}
-  .btn-logout:hover{color:var(--text);border-color:var(--red)}
+/* --------- topo --------- */
+.topo{display:flex;align-items:center;gap:16px;padding:18px 22px;margin-bottom:16px;flex-wrap:wrap}
+.selo{width:46px;height:46px;border-radius:13px;flex:0 0 46px;display:grid;place-items:center;
+  background:linear-gradient(150deg,#2EE59D,#0FB87A);box-shadow:0 0 24px rgba(46,229,157,.30)}
+.topo .nm{font-size:18px;font-weight:800;letter-spacing:-.3px}
+.topo .sb{font-size:10.5px;color:var(--dim);letter-spacing:2.2px;font-weight:600;text-transform:uppercase;margin-top:2px}
+.pilha{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pil{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--linha2);border-radius:999px;
+  padding:8px 15px;font-size:12px;font-weight:700;color:var(--dim);background:rgba(255,255,255,.02)}
+.pil.viva{color:var(--verde);border-color:rgba(46,229,157,.35)}
+.pil .ponto{width:7px;height:7px;border-radius:50%;background:currentColor;
+  box-shadow:0 0 0 3px rgba(46,229,157,.16)}
+.pil.bt:hover{border-color:var(--linha2);color:var(--txt)}
+.cx-sel{display:flex;align-items:center;gap:12px;border:1px solid var(--linha2);border-radius:14px;
+  padding:9px 14px;background:rgba(255,255,255,.02)}
+.cx-sel .hash{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+  background:rgba(255,255,255,.05);color:var(--dim);font-weight:800;font-size:13px}
+.cx-sel .rot{font-size:9.5px;color:var(--fraco);letter-spacing:1.6px;font-weight:700;text-transform:uppercase}
+.cx-sel input{background:none;border:none;color:var(--txt);font:800 15px/1.2 var(--fonte);
+  padding:0;margin-top:2px;color-scheme:dark}
+.cx-sel input:focus{outline:none}
 
-  .main{overflow-y:auto;height:100vh}
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;
-    border-bottom:1px solid var(--border);position:sticky;top:0;
-    background:rgba(10,13,12,.86);backdrop-filter:blur(10px);z-index:10;gap:14px;flex-wrap:wrap}
-  .crumb{font-size:11px;color:var(--text-faint);letter-spacing:.4px;font-weight:600}
-  .topbar h1{font-size:19px;font-weight:700;letter-spacing:-.3px;margin-top:2px}
-  .content{padding:26px 28px 70px}
+/* --------- navegação em pílulas --------- */
+.nav{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.nav button{background:rgba(255,255,255,.02);border:1px solid var(--linha);border-radius:999px;
+  padding:9px 17px;font-size:12.5px;font-weight:700;color:var(--dim)}
+.nav button:hover{border-color:var(--linha2);color:var(--txt)}
+.nav button.on{background:var(--verde-fundo);border-color:rgba(46,229,157,.35);color:var(--verde)}
 
-  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
-  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:17px 18px}
-  .kpi .k-label{font-size:11px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-  .kpi .k-val{font-size:26px;font-weight:800;letter-spacing:-1px;margin-top:7px;font-variant-numeric:tabular-nums}
-  .kpi .k-sub{font-size:11.5px;color:var(--text-faint);margin-top:3px}
+/* --------- faixa de identidade + quadrantes --------- */
+.duo{display:grid;grid-template-columns:1fr 1.15fr;gap:16px;margin-bottom:16px}
+.ident{padding:24px 26px}
+.ident .rot{font-size:10.5px;color:var(--fraco);letter-spacing:2px;font-weight:700;text-transform:uppercase}
+.ident .gr{font-size:44px;font-weight:800;letter-spacing:-2px;line-height:1.05;margin-top:10px}
+.ident .gr em{font-style:normal;color:var(--fraco)}
+.ident .pe{font-size:13px;color:var(--dim);margin-top:14px;line-height:1.6}
+.ident .pe b{color:var(--txt)}
+.quad{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.q{padding:20px 22px;border-left:1px solid var(--linha);border-bottom:1px solid var(--linha)}
+.q:nth-child(1),.q:nth-child(2){border-top:none}
+.q:nth-child(1),.q:nth-child(3){border-left:none}
+.q:nth-child(3),.q:nth-child(4){border-bottom:none}
+.q .rot{font-size:10px;color:var(--fraco);letter-spacing:1.6px;font-weight:700;text-transform:uppercase}
+.q .vl{font-size:30px;font-weight:800;letter-spacing:-1.2px;margin-top:6px;font-variant-numeric:tabular-nums}
+.q .sb{font-size:11.5px;color:var(--fraco);margin-top:3px}
+.azul{color:var(--ciano)}.verde{color:var(--verde)}.rubro{color:var(--vermelho)}.ouro{color:var(--ambar)}
 
-  .sec-title{font-size:12px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;
-    margin:6px 0 14px;display:flex;align-items:center;gap:12px}
-  .sec-title .rule{flex:1;height:1px;background:var(--border)}
+/* --------- herói + extrato --------- */
+.heroi{display:grid;grid-template-columns:1fr 1.05fr;gap:0;margin-bottom:16px}
+.heroi-e{padding:38px 34px;display:flex;flex-direction:column;justify-content:center}
+.heroi-e .rot{font-size:11.5px;color:var(--verde);letter-spacing:1.4px;font-weight:700;
+  text-transform:uppercase;display:flex;align-items:center;gap:9px}
+.heroi-e .rot i{width:7px;height:7px;border-radius:50%;background:currentColor;display:block}
+.heroi-e .gr{font-size:62px;font-weight:800;letter-spacing:-3.5px;line-height:1;margin-top:14px;
+  color:var(--verde-claro);font-variant-numeric:tabular-nums}
+.heroi-e .pe{font-size:13px;color:var(--dim);margin-top:16px;line-height:1.65;max-width:330px}
+.heroi-e .pe b{color:var(--txt)}
+.extrato{padding:16px}
+.ex{display:flex;align-items:center;gap:14px;padding:15px 16px;border-radius:12px;
+  background:rgba(255,255,255,.017);margin-bottom:7px}
+.ex:last-child{margin-bottom:0}
+.ex .sg{width:26px;height:26px;border-radius:8px;flex:0 0 26px;display:grid;place-items:center;
+  font-size:13px;font-weight:800}
+.sg-pc{background:var(--verde-fundo);color:var(--verde)}
+.sg-me{background:var(--vermelho-fundo);color:var(--vermelho)}
+.sg-ma{background:var(--verde-fundo);color:var(--verde)}
+.sg-ig{background:rgba(255,255,255,.07);color:var(--txt)}
+.ex .rt{flex:1;font-size:14px}
+.ex .vl{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ex.total{background:rgba(255,255,255,.055)}
+.ex.total .rt,.ex.total .vl{font-weight:800}
+.ex.final{background:var(--verde-fundo);border:1px solid rgba(46,229,157,.25)}
+.ex.final .vl{color:var(--verde-claro);font-size:17px}
 
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-  .toolbar{display:flex;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);align-items:center;flex-wrap:wrap}
-  .search{background:var(--bg);border:1px solid var(--border-strong);border-radius:9px;padding:9px 13px;
-    color:var(--text);font-size:13px;font-family:inherit}
-  .search:focus{outline:none;border-color:var(--green)}
-  .select{-webkit-appearance:none;appearance:none;padding-right:32px;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2393A29A' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
-    background-repeat:no-repeat;background-position:right 12px center}
-  input[type=date],input[type=month]{color-scheme:dark}
+/* --------- seção --------- */
+.sec{margin-bottom:16px}
+.sec-topo{display:flex;align-items:center;gap:14px;padding:20px 24px;flex-wrap:wrap}
+.ladr{width:42px;height:42px;border-radius:12px;flex:0 0 42px;display:grid;place-items:center;
+  background:var(--ciano-fundo);color:var(--ciano)}
+.ladr.v{background:var(--verde-fundo);color:var(--verde)}
+.ladr.a{background:var(--ambar-fundo);color:var(--ambar)}
+.sec-topo .tt{font-size:17px;font-weight:800;letter-spacing:-.2px}
+.sec-topo .st{font-size:12px;color:var(--fraco);margin-top:2px}
+.sec-chips{margin-left:auto;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.chip{border:1px solid var(--linha2);border-radius:999px;padding:6px 13px;font-size:11.5px;color:var(--dim)}
+.chip b{color:var(--txt);font-weight:700}
+.faixa-num{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--linha);border-radius:14px;
+  margin:0 24px 18px;overflow:hidden}
+.faixa-num>div{padding:16px 20px}
+.faixa-num>div+div{border-left:1px solid var(--linha)}
+.faixa-num .rot{font-size:10px;color:var(--fraco);letter-spacing:1.5px;font-weight:700;text-transform:uppercase}
+.faixa-num .vl{font-size:23px;font-weight:800;letter-spacing:-.8px;margin-top:5px;font-variant-numeric:tabular-nums}
+.impacto{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 24px 22px;
+  padding:16px 20px;border-radius:12px;background:var(--vermelho-fundo);
+  border:1px solid rgba(255,92,106,.20);font-size:14px}
+.impacto b{font-size:17px;font-weight:800;color:var(--vermelho);font-variant-numeric:tabular-nums}
+.sec-pe{border-top:1px solid var(--linha);padding:15px;text-align:center;font-size:13px;
+  color:var(--dim);font-weight:600;cursor:pointer}
+.sec-pe:hover{color:var(--txt)}
 
-  .tabela-larga{overflow-x:auto}
-  table{width:100%;border-collapse:collapse}
-  th{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-faint);font-weight:700;
-    text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg-2);white-space:nowrap}
-  th.grp{text-align:center;border-left:1px solid var(--border-strong);color:var(--text-dim)}
-  td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;white-space:nowrap}
-  td.sep{border-left:1px solid var(--border-strong)}
-  tbody tr:hover{background:var(--surface-2)}
-  tfoot td{font-weight:700;border-top:1px solid var(--border-strong);border-bottom:none;background:var(--bg-2)}
-  .num{font-variant-numeric:tabular-nums;text-align:right}
-  .dim{color:var(--text-dim)}
-  .neg{color:var(--red)}
-  .pos{color:var(--green)}
-  .cell-name{display:flex;align-items:center;gap:10px;font-weight:600}
-  .mini-av{width:26px;height:26px;border-radius:7px;background:var(--surface-2);display:grid;place-items:center;
-    font-size:10px;font-weight:700;color:var(--text-dim);flex-shrink:0}
-  .tag{font-size:10px;font-weight:700;padding:4px 9px;border-radius:20px;white-space:nowrap}
-  .t-green{background:var(--green-deep);color:var(--green)}
-  .t-amber{background:var(--amber-deep);color:#ffcf7a}
-  .t-red{background:var(--red-deep);color:#ff9aa6}
-  .t-blue{background:rgba(76,134,198,.16);color:#8fbef0}
-  .t-off{background:transparent;border:1px dashed var(--text-faint);color:var(--text-faint)}
-  .status{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-block}
-  .s-pago{background:var(--green-deep);color:#5fe6b3}
-  .s-aberto{background:var(--surface-2);color:var(--text-faint)}
-  .s-retido{background:var(--amber-deep);color:#ffcf7a}
+/* --------- barra empilhada --------- */
+.emp{display:flex;height:52px;border-radius:11px;overflow:hidden;gap:3px}
+.emp>div{display:grid;place-items:center;text-align:center;line-height:1.25}
+.emp .p{font-size:16px;font-weight:800;color:#04120B}
+.emp .l{font-size:9.5px;font-weight:700;color:rgba(4,18,11,.65);letter-spacing:.5px}
+.emp-leg{display:flex;gap:26px;flex-wrap:wrap;margin-top:16px}
+.emp-leg .it{display:flex;gap:10px;align-items:flex-start;font-size:12px}
+.emp-leg i{width:9px;height:9px;border-radius:3px;margin-top:4px;flex:0 0 9px}
+.emp-leg .r{font-size:10px;color:var(--fraco);letter-spacing:1.2px;font-weight:700;text-transform:uppercase}
+.emp-leg .v{font-size:14px;font-weight:800;margin-top:3px}
+.emp-leg .v span{font-size:12px;font-weight:500;color:var(--fraco)}
 
-  .sol-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
-  .sol-tab{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:8px 15px;
-    font-size:12.5px;font-weight:600;color:var(--text-dim)}
-  .sol-tab.on{border-color:var(--green);color:var(--green)}
-  .sol-tab:hover{border-color:var(--border-strong)}
-  .btn-rd{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border-strong);
-    color:var(--text-dim);border-radius:8px;padding:6px 11px;font-size:11.5px;font-weight:600}
-  .btn-rd:hover{border-color:var(--green);color:var(--green)}
-  .cfg-save{background:var(--green);color:#04120B;border:none;border-radius:9px;padding:10px 18px;
-    font-size:13px;font-weight:800}
-  .cfg-save:hover{filter:brightness(1.08)}
-  .cfg-save:disabled{opacity:.55;cursor:not-allowed}
+/* --------- tabela --------- */
+.rola{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--fraco);font-weight:700;
+  text-align:left;padding:12px 15px;border-bottom:1px solid var(--linha);white-space:nowrap}
+th.g{text-align:center;border-left:1px solid var(--linha2);color:var(--dim)}
+td{padding:13px 15px;border-bottom:1px solid rgba(255,255,255,.035);font-size:13px;white-space:nowrap}
+td.s{border-left:1px solid var(--linha2)}
+tbody tr:hover{background:rgba(255,255,255,.022)}
+tbody tr:last-child td{border-bottom:none}
+tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
+  background:rgba(255,255,255,.028);font-size:13px}
+.n{text-align:right;font-variant-numeric:tabular-nums}
+.d{color:var(--dim)}.f{color:var(--fraco)}
+.nome{display:flex;align-items:center;gap:11px;font-weight:600}
+.ini{width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.05);display:grid;
+  place-items:center;font-size:10px;font-weight:800;color:var(--dim);flex:0 0 28px}
+.et{font-size:9.5px;font-weight:800;padding:3px 9px;border-radius:999px;letter-spacing:.4px}
+.et-v{background:var(--verde-fundo);color:var(--verde)}
+.et-a{background:var(--ambar-fundo);color:var(--ambar)}
+.et-r{background:var(--vermelho-fundo);color:var(--vermelho)}
+.et-o{background:transparent;border:1px dashed var(--fraco);color:var(--fraco)}
 
-  .note{font-size:12.5px;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);
-    border-left:3px solid var(--amber);border-radius:8px;padding:12px 15px;margin-bottom:16px;line-height:1.6}
-  .note.bom{border-left-color:var(--green)}
-  .note.ruim{border-left-color:var(--red)}
-  .note.info{border-left-color:var(--blue)}
-  .loading,.empty{padding:44px;text-align:center;color:var(--text-faint);font-size:13px}
-  .spinner{width:22px;height:22px;border:2.5px solid var(--border-strong);border-top-color:var(--green);
-    border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
-  @keyframes spin{to{transform:rotate(360deg)}}
+/* --------- controles --------- */
+.barra-ctrl{display:flex;gap:9px;padding:0 24px 18px;flex-wrap:wrap;align-items:center}
+.ent{background:rgba(255,255,255,.03);border:1px solid var(--linha2);border-radius:10px;
+  padding:9px 13px;color:var(--txt);font-size:13px;font-family:inherit}
+.ent:focus{outline:none;border-color:rgba(46,229,157,.45)}
+.sel{-webkit-appearance:none;appearance:none;padding-right:32px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237E8F87' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right 12px center}
+.bt{background:rgba(255,255,255,.03);border:1px solid var(--linha2);color:var(--dim);
+  border-radius:10px;padding:9px 15px;font-size:12.5px;font-weight:700}
+.bt:hover{border-color:rgba(46,229,157,.4);color:var(--verde)}
+.bt-f{background:var(--verde);color:#04120B;border:none;border-radius:10px;padding:11px 20px;
+  font-size:13px;font-weight:800}
+.bt-f:hover{filter:brightness(1.08)}
+.bt-f:disabled{opacity:.5;cursor:not-allowed}
 
-  .solta{border:1.5px dashed var(--border-strong);border-radius:14px;padding:34px 20px;text-align:center;
-    cursor:pointer;transition:.18s;background:var(--surface);margin-bottom:16px}
-  .solta:hover,.solta.sobre{border-color:var(--green);background:rgba(46,229,157,.06)}
-  .solta strong{display:block;font-size:15px;font-weight:700;margin-bottom:5px}
-  .solta span{font-size:12.5px;color:var(--text-dim)}
-  .progresso{height:4px;background:var(--bg);border-radius:3px;overflow:hidden;margin:14px 0}
-  .progresso div{height:100%;background:var(--green);width:0;transition:width .25s}
+.aviso{padding:15px 18px;border-radius:13px;font-size:13px;line-height:1.65;margin-bottom:16px;
+  background:rgba(255,255,255,.02);border:1px solid var(--linha);border-left:3px solid var(--dim)}
+.aviso.v{border-left-color:var(--verde)}
+.aviso.a{border-left-color:var(--ambar)}
+.aviso.r{border-left-color:var(--vermelho)}
+.aviso.c{border-left-color:var(--ciano)}
+.vazio,.carreg{padding:50px;text-align:center;color:var(--fraco);font-size:13px}
+.giro{width:22px;height:22px;border:2.5px solid var(--linha2);border-top-color:var(--verde);
+  border-radius:50%;animation:g .7s linear infinite;margin:0 auto 12px}
+@keyframes g{to{transform:rotate(360deg)}}
 
-  /* gaveta */
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.66);backdrop-filter:blur(3px);opacity:0;
-    pointer-events:none;transition:.25s;z-index:40}
-  .overlay.open{opacity:1;pointer-events:auto}
-  .drawer{position:fixed;top:50%;left:50%;transform:translate(-50%,-48%) scale(.97);opacity:0;pointer-events:none;
-    width:640px;max-width:94vw;max-height:88vh;background:var(--bg-2);border:1px solid var(--border-strong);
-    border-radius:20px;transition:.24s cubic-bezier(.2,.7,.2,1);z-index:41;display:flex;flex-direction:column;
-    box-shadow:0 40px 100px -25px rgba(0,0,0,.85)}
-  .drawer.open{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
-  .dr-head{padding:24px 28px 18px;border-bottom:1px solid var(--border);position:relative}
-  .dr-close{position:absolute;top:20px;right:20px;background:var(--surface);border:1px solid var(--border-strong);
-    color:var(--text-dim);width:34px;height:34px;border-radius:9px;font-size:15px}
-  .dr-close:hover{color:var(--text);border-color:var(--red)}
-  .dr-name{font-size:21px;font-weight:800;letter-spacing:-.4px}
-  .dr-sub{font-size:12.5px;color:var(--text-dim);font-weight:600;margin-top:3px}
-  .dr-body{padding:20px 28px 26px;overflow-y:auto;flex:1}
-  .dr-sec{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-faint);
-    font-weight:700;margin:20px 0 11px}
-  .dr-sec:first-child{margin-top:0}
-  .ed-linha{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
-  .ed-linha label{flex:0 0 168px;font-size:12.5px;color:var(--text-dim)}
-  .ed-linha input{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
-    padding:8px 11px;color:var(--text);font-size:13px;font-family:inherit;text-align:right;
-    font-variant-numeric:tabular-nums}
-  .ed-linha input:focus{outline:none;border-color:var(--green)}
-  .ed-linha .orig{flex:0 0 120px;font-size:11.5px;color:var(--text-faint);text-align:right}
-  .ed-linha.mudou input{border-color:var(--amber)}
+/* --------- login --------- */
+#login{min-height:100vh;display:grid;place-items:center;padding:24px}
+.lg{width:100%;max-width:390px;padding:36px 32px}
+.lg h1{font-size:17px;font-weight:800;margin:24px 0 5px}
+.lg p{font-size:12.5px;color:var(--dim);margin-bottom:24px}
+.lg label{display:block;font-size:10.5px;color:var(--fraco);letter-spacing:1.2px;font-weight:700;
+  text-transform:uppercase;margin:16px 0 7px}
+.lg input{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--linha2);border-radius:11px;
+  padding:12px 14px;color:var(--txt);font-size:14px;font-family:inherit}
+.lg input:focus{outline:none;border-color:rgba(46,229,157,.5)}
+.lg button{width:100%;margin-top:24px;padding:13px}
+.lg .err{color:var(--vermelho);font-size:12.5px;margin-top:14px;min-height:16px;line-height:1.5}
 
-  .toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:60}
-  .toast{background:var(--bg-2);border:1px solid var(--border-strong);border-left:3px solid var(--green);
-    border-radius:12px;padding:14px 18px;min-width:270px;max-width:380px;
-    box-shadow:0 20px 50px -15px rgba(0,0,0,.7);animation:tin .25s ease;display:flex;gap:12px;align-items:flex-start}
-  .toast.ruim{border-left-color:var(--red)}
-  .toast-t{font-size:13px;font-weight:700}
-  .toast-d{font-size:12px;color:var(--text-dim);margin-top:3px;line-height:1.4}
-  .toast-x{margin-left:auto;color:var(--text-faint);font-size:15px;cursor:pointer}
-  @keyframes tin{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+/* --------- gaveta --------- */
+.veu{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);opacity:0;
+  pointer-events:none;transition:.25s;z-index:40}
+.veu.on{opacity:1;pointer-events:auto}
+.gav{position:fixed;top:50%;left:50%;transform:translate(-50%,-47%) scale(.97);opacity:0;
+  pointer-events:none;width:620px;max-width:94vw;max-height:88vh;z-index:41;display:flex;
+  flex-direction:column;transition:.24s cubic-bezier(.2,.7,.2,1);
+  box-shadow:0 40px 100px -25px rgba(0,0,0,.9)}
+.gav.on{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
+.gav-t{padding:24px 28px 18px;border-bottom:1px solid var(--linha);position:relative}
+.gav-x{position:absolute;top:20px;right:20px;background:rgba(255,255,255,.04);
+  border:1px solid var(--linha2);color:var(--dim);width:34px;height:34px;border-radius:10px;font-size:15px}
+.gav-x:hover{color:var(--vermelho);border-color:rgba(255,92,106,.4)}
+.gav-n{font-size:22px;font-weight:800;letter-spacing:-.4px}
+.gav-s{font-size:12.5px;color:var(--dim);margin-top:3px}
+.gav-b{padding:20px 28px 26px;overflow-y:auto;flex:1}
+.gav-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.6px;color:var(--fraco);
+  font-weight:700;margin:22px 0 12px}
+.gav-sec:first-child{margin-top:0}
+.ed{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.035)}
+.ed label{flex:0 0 175px;font-size:12.5px;color:var(--dim)}
+.ed input{flex:1;background:rgba(255,255,255,.03);border:1px solid var(--linha2);border-radius:9px;
+  padding:9px 12px;color:var(--txt);font-size:13px;font-family:inherit;text-align:right;
+  font-variant-numeric:tabular-nums}
+.ed input:focus{outline:none;border-color:rgba(46,229,157,.5)}
+.ed .og{flex:0 0 118px;font-size:11.5px;color:var(--fraco);text-align:right}
+.ed.mud input{border-color:rgba(245,184,65,.6)}
 
-  .serie{display:flex;gap:12px;align-items:flex-end}
-  .serie-col{flex:1;display:flex;flex-direction:column;align-items:center}
-  .serie-v{font-size:12px;font-weight:600;margin-bottom:7px;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .serie-b{width:100%;height:130px;display:flex;align-items:flex-end}
-  .serie-b span{width:100%;border-radius:5px 5px 0 0;
-    background:linear-gradient(180deg,rgba(46,229,157,.92),rgba(46,229,157,.18))}
-  .serie-m{font-size:11px;margin-top:9px;color:var(--text-dim)}
-  .serie-d{font-size:12px;font-weight:600;margin-top:3px}
+.torr{position:fixed;bottom:26px;right:26px;display:flex;flex-direction:column;gap:10px;z-index:60}
+.tor{border-radius:13px;padding:15px 19px;min-width:270px;max-width:380px;
+  box-shadow:0 22px 55px -18px rgba(0,0,0,.8);display:flex;gap:12px;align-items:flex-start;
+  border-left:3px solid var(--verde);animation:ti .25s ease}
+.tor.r{border-left-color:var(--vermelho)}
+.tor .t{font-size:13px;font-weight:800}
+.tor .d{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.45}
+.tor .x{margin-left:auto;color:var(--fraco);font-size:15px;cursor:pointer}
+@keyframes ti{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
 
-  .menu-btn{display:none;place-items:center;width:38px;height:38px;border-radius:9px;background:var(--surface);
-    border:1px solid var(--border-strong);color:var(--text)}
-  .sb-fundo{position:fixed;inset:0;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;
-    transition:opacity .25s;z-index:45}
-  .sb-fundo.on{opacity:1;pointer-events:auto}
-  @media(max-width:1080px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.content{padding:20px 16px 70px}}
-  @media(max-width:860px){
-    #app{grid-template-columns:1fr}
-    .sidebar{position:fixed;left:0;top:0;bottom:0;width:250px;transform:translateX(-100%);transition:.25s;z-index:46}
-    .sidebar.open{transform:none}
-    .menu-btn{display:grid}
-    .topbar{padding:12px 14px}.topbar h1{font-size:15.5px}
-    .kpi-grid{grid-template-columns:1fr}
-    .drawer{width:100%;max-width:100%;top:auto;bottom:0;left:0;transform:translateY(100%);border-radius:20px 20px 0 0}
-    .drawer.open{transform:translateY(0)}
-    .ed-linha{flex-wrap:wrap}.ed-linha label{flex:1 0 100%}
-  }
-  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.solta{border:1.5px dashed var(--linha2);border-radius:16px;padding:40px 22px;text-align:center;
+  cursor:pointer;transition:.18s;margin:0 24px 20px}
+.solta:hover,.solta.sob{border-color:rgba(46,229,157,.5);background:rgba(46,229,157,.045)}
+.solta strong{display:block;font-size:16px;font-weight:800;margin-bottom:6px}
+.solta span{font-size:12.5px;color:var(--dim)}
+.prog{height:4px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;margin:0 24px 16px}
+.prog div{height:100%;background:var(--verde);width:0;transition:width .25s}
+
+.col{display:flex;gap:14px;align-items:flex-end;padding:8px 24px 22px}
+.col-c{flex:1;display:flex;flex-direction:column;align-items:center}
+.col-v{font-size:12px;font-weight:700;margin-bottom:8px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.col-b{width:100%;height:140px;display:flex;align-items:flex-end}
+.col-b span{width:100%;border-radius:6px 6px 0 0;
+  background:linear-gradient(180deg,var(--verde),rgba(46,229,157,.14))}
+.col-m{font-size:11px;margin-top:10px;color:var(--dim)}
+.col-d{font-size:11.5px;font-weight:700;margin-top:3px}
+
+@media(max-width:980px){
+  .duo,.heroi{grid-template-columns:1fr}
+  .heroi-e{padding:28px 24px}
+  .heroi-e .gr{font-size:46px;letter-spacing:-2.4px}
+  .quad{border-top:1px solid var(--linha)}
+  .ident .gr{font-size:34px}
+}
+@media(max-width:620px){
+  .tela{padding:14px 12px 80px}
+  .quad{grid-template-columns:1fr}
+  .q{border-left:none!important;border-bottom:1px solid var(--linha)!important}
+  .faixa-num{grid-template-columns:1fr}
+  .faixa-num>div+div{border-left:none;border-top:1px solid var(--linha)}
+  .ed{flex-wrap:wrap}.ed label{flex:1 0 100%}
+  .gav{width:100%;max-width:100%;top:auto;bottom:0;left:0;transform:translateY(100%);
+    border-radius:20px 20px 0 0}
+  .gav.on{transform:translateY(0)}
+  .heroi-e .gr{font-size:38px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 
 <section id="login">
-  <div class="login-card">
-    <div class="brand-lg">
-      <div class="mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 15c3-1 5-8 8-8s3 5 8 3" stroke="#04140d" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="7" r="1.6" fill="#04140d"/></svg></div>
-      <div><div class="n">Seja Livre</div><div class="s">GERENCIAL</div></div>
+  <div class="cx cx-luz lg">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="selo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#04140d" stroke-width="3"><path d="M5 13l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div><div class="nm" style="font-size:17px;font-weight:800">Seja Livre Investimentos</div>
+        <div class="sb" style="font-size:10px;color:var(--dim);letter-spacing:2px;font-weight:600">GERENCIAL · RECEITAS E PAGAMENTOS</div></div>
     </div>
-    <h1>Entrar no gerencial</h1>
-    <p>Receitas e pagamentos. Acesso separado do CRM.</p>
+    <h1>Entrar</h1>
+    <p>Acesso separado do CRM, liberado pessoa a pessoa.</p>
     <form id="loginForm">
-      <div class="field"><label>E-mail</label><input type="email" id="email" autocomplete="username" required></div>
-      <div class="field"><label>Senha</label><input type="password" id="senha" autocomplete="current-password" required></div>
-      <button class="btn-primary" id="btEntrar" type="submit">Entrar</button>
-      <div class="login-err" id="erroLogin"></div>
+      <label>E-mail</label><input type="email" id="email" autocomplete="username" required>
+      <label>Senha</label><input type="password" id="senha" autocomplete="current-password" required>
+      <button class="bt-f" id="btEntrar" type="submit">Entrar</button>
+      <div class="err" id="erroLogin"></div>
     </form>
   </div>
 </section>
 
-<div id="app" class="hidden">
-  <div class="sb-fundo" id="sbFundo" onclick="fecharMenu()"></div>
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <div class="mark" style="width:32px;height:32px;border-radius:9px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 15c3-1 5-8 8-8s3 5 8 3" stroke="#04140d" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="7" r="1.6" fill="#04140d"/></svg></div>
-      <div><div class="n">Seja Livre</div><div class="s">GERENCIAL</div></div>
+<main id="app" class="esc"><div class="tela">
+  <div class="cx cx-luz topo">
+    <div class="selo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#04140d" stroke-width="3"><path d="M5 13l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div><div class="nm">Seja Livre Investimentos</div><div class="sb" id="crumb">GERENCIAL · FECHAMENTO</div></div>
+    <div class="pilha">
+      <span class="pil" id="relogio"></span>
+      <span class="pil viva"><span class="ponto"></span>AO VIVO</span>
+      <div class="cx-sel"><div class="hash">#</div>
+        <div><div class="rot">Competência</div><input type="month" id="mes" onchange="mesMudou()"></div></div>
+      <button class="pil bt" id="btSair">Sair</button>
     </div>
-    <nav class="nav">
-      <div class="nav-label">Fechamento</div>
-      <button class="nav-item active" data-view="resumo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11" stroke-linecap="round"/></svg>Resumo do mês</button>
-      <button class="nav-item" data-view="pagamentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></svg>Pagamentos</button>
-      <div class="nav-label">Análise</div>
-      <button class="nav-item" data-view="parceiro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 3 6-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 8h4v4" stroke-linecap="round" stroke-linejoin="round"/></svg>Evolução</button>
-      <button class="nav-item" data-view="casa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10l8-6 8 6v10" stroke-linejoin="round"/><path d="M9 20v-6h6v6" stroke-linejoin="round"/></svg>A casa</button>
-      <div class="nav-label">Dados</div>
-      <button class="nav-item" data-view="importar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>Importar</button>
-      <button class="nav-item" data-view="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6z" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>Edições</button>
-    </nav>
-    <div class="foot">
-      <div class="user-chip"><div class="avatar" id="avatar">–</div>
-        <div><div class="u-name" id="userName">–</div><div class="u-role" id="userRole">–</div>
-        <div class="u-ver" id="versao" title="Serve para conferir se a última alteração já está no ar"></div></div></div>
-      <button class="btn-logout" id="btSair">Sair</button>
-    </div>
-  </aside>
-
-  <div class="main">
-    <div class="topbar">
-      <div style="display:flex;align-items:center;gap:14px">
-        <button class="menu-btn" id="menuBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg></button>
-        <div><div class="crumb" id="crumb">FECHAMENTO</div><h1 id="titulo">Resumo do mês</h1></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center">
-        <input type="month" class="search" id="mes" onchange="mesMudou()">
-      </div>
-    </div>
-    <div class="content" id="content"><div class="loading"><div class="spinner"></div>Carregando…</div></div>
-    <div class="toast-wrap" id="toasts"></div>
   </div>
-</div>
 
-<div class="overlay" id="overlay"></div>
-<aside class="drawer" id="drawer">
-  <div class="dr-head"><button class="dr-close" id="drClose">✕</button>
-    <div class="dr-name" id="drName"></div><div class="dr-sub" id="drSub"></div></div>
-  <div class="dr-body" id="drBody"></div>
+  <nav class="nav" id="nav"></nav>
+  <div id="alvo"><div class="carreg"><div class="giro"></div>Carregando…</div></div>
+</div></main>
+
+<div class="veu" id="veu"></div>
+<aside class="cx gav" id="gav">
+  <div class="gav-t"><button class="gav-x" id="gavX">✕</button>
+    <div class="gav-n" id="gavN"></div><div class="gav-s" id="gavS"></div></div>
+  <div class="gav-b" id="gavB"></div>
 </aside>
+<div class="torr" id="torr"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// A chave publishable é pública por natureza — quem protege é o RLS, e as
-// tabelas do gerencial só abrem para quem está em gerencial_usuarios.
+/* A chave publishable é pública por natureza — quem protege é o RLS, e as
+   tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v02/09 23:40";
+const VERSAO = "v03/09 01:20";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const el = i => document.getElementById(i);
-const nf  = n => (n==null?"—":Number(n).toLocaleString("pt-BR",{maximumFractionDigits:0}));
-const brl = v => (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-const brl0= v => (Number(v)===0 ? "—" : brl(v));
-const pctf= v => v==null ? "—" : (Number(v)*100).toFixed(2).replace(".",",")+"%";
-const ini = n => (n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
-const fmtData = d => { if(!d) return "—"; const s=String(d);
+const el=i=>document.getElementById(i);
+const nf=n=>(n==null?"—":Number(n).toLocaleString("pt-BR",{maximumFractionDigits:0}));
+const brl=v=>"R$ "+(Number(v)||0).toLocaleString("pt-BR",{maximumFractionDigits:0});
+const brlx=v=>(Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const brl0=v=>Number(v)===0?"—":brl(v);
+const pct=v=>v==null?"—":(Number(v)*100).toFixed(2).replace(".",",")+"%";
+const ini=n=>(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+const esc1=s=>String(s).replace(/'/g,"\\'");
+const fmtData=d=>{ if(!d) return "—"; const s=String(d);
   const x=new Date(/^\d{4}-\d{2}-\d{2}$/.test(s)?s+"T00:00:00":s);
   return isNaN(x)?"—":x.toLocaleDateString("pt-BR"); };
-const MESES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
-const mesNome = d => { const p=String(d).split("-"); return MESES[Number(p[1])-1]+" de "+p[0]; };
-const mesCurto= d => { const p=String(d).split("-"); return MESES[Number(p[1])-1].slice(0,3)+"/"+p[0].slice(2); };
+const MS=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+const mesNome=d=>{const p=String(d).split("-");return MS[Number(p[1])-1]+" de "+p[0];};
+const mesCurto=d=>{const p=String(d).split("-");return MS[Number(p[1])-1].slice(0,3)+"/"+p[0].slice(2);};
+const soma=(l,c)=>l.reduce((a,x)=>a+(Number(x[c])||0),0);
 
-function toast(t,d,ruim){
-  const w=el("toasts"); const x=document.createElement("div");
-  x.className="toast"+(ruim?" ruim":"");
-  x.innerHTML='<div><div class="toast-t">'+t+'</div>'+(d?'<div class="toast-d">'+d+'</div>':'')+'</div><span class="toast-x">✕</span>';
-  x.querySelector(".toast-x").onclick=()=>x.remove();
-  w.appendChild(x); setTimeout(()=>x.remove(),8000);
+function tor(t,d,ruim){
+  const x=document.createElement("div");
+  x.className="cx tor"+(ruim?" r":"");
+  x.innerHTML='<div><div class="t">'+t+'</div>'+(d?'<div class="d">'+d+'</div>':'')+'</div><span class="x">✕</span>';
+  x.querySelector(".x").onclick=()=>x.remove();
+  el("torr").appendChild(x); setTimeout(()=>x.remove(),8000);
 }
-function erro(e,alvo){
-  el(alvo||"content").innerHTML='<div class="empty">Não foi possível carregar.<br>'+
-    '<span style="font-size:11px;color:var(--text-faint)">'+((e&&e.message)||e)+'</span></div>';
-}
+function falha(e,a){ el(a||"alvo").innerHTML='<div class="vazio">Não foi possível carregar.<br>'+
+  '<span style="font-size:11px;color:var(--fraco)">'+((e&&e.message)||e)+'</span></div>'; }
 
-/* ---------------- acesso ---------------- */
+setInterval(()=>{const r=el("relogio");if(r)r.textContent=new Date().toLocaleTimeString("pt-BR");},1000);
+
+/* ================= acesso ================= */
 let PAPEL="leitor", COMP=null, FORA=new Set();
-
-el("loginForm").addEventListener("submit", async e=>{
+el("loginForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const b=el("btEntrar"); b.disabled=true; b.textContent="Entrando…"; el("erroLogin").textContent="";
   const r=await sb.auth.signInWithPassword({email:el("email").value.trim(),password:el("senha").value});
   b.disabled=false; b.textContent="Entrar";
-  if(r.error){ el("erroLogin").textContent = /Invalid/.test(r.error.message)
-    ? "E-mail ou senha incorretos." : r.error.message; return; }
+  if(r.error){ el("erroLogin").textContent=/Invalid/.test(r.error.message)
+    ?"E-mail ou senha incorretos.":r.error.message; return; }
   abrir();
 });
-el("btSair").onclick = async ()=>{ await sb.auth.signOut(); location.reload(); };
+el("btSair").onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
 
 async function abrir(){
   const u=await sb.auth.getUser(); const user=u.data&&u.data.user; if(!user) return;
   const p=await sb.rpc("gerencial_papel");
   if(!p.data){
     el("erroLogin").innerHTML="Você entrou, mas sua conta não está liberada no gerencial.<br>"+
-      "Peça para um administrador te cadastrar.";
-    await sb.auth.signOut(); return;
+      "Peça para um administrador te cadastrar."; await sb.auth.signOut(); return;
   }
   PAPEL=p.data;
-  el("login").classList.add("hidden"); el("app").classList.remove("hidden");
-  el("avatar").textContent=ini(user.email);
-  el("userName").textContent=user.email.split("@")[0];
-  el("userRole").textContent = PAPEL==="admin"?"Administrador":PAPEL==="operador"?"Operador":"Leitor";
-  el("versao").textContent=VERSAO;
+  el("login").classList.add("esc"); el("app").classList.remove("esc");
   const f=await sb.from("vw_barras_fora_gerencial").select("barra");
   FORA=new Set((f.data||[]).map(x=>chaveBarra(x.barra)));
   await escolherMes();
-  render("resumo");
+  pintarNav(); ir("resumo");
 }
 sb.auth.getSession().then(r=>{ if(r.data.session) abrir(); });
 
-// abre no mês mais recente que tem dado, não no mês corrente vazio
 async function escolherMes(){
   const r=await sb.from("vw_gerencial_casa").select("competencia,receita_aai")
     .order("competencia",{ascending:false}).limit(12);
-  const lista=(r.data||[]).filter(x=>Number(x.receita_aai)!==0);
-  COMP=(lista[0]||(r.data||[])[0]||{}).competencia||new Date().toISOString().slice(0,8)+"01";
+  const com=(r.data||[]).filter(x=>Number(x.receita_aai)!==0);
+  COMP=(com[0]||(r.data||[])[0]||{}).competencia||new Date().toISOString().slice(0,8)+"01";
   el("mes").value=String(COMP).slice(0,7);
 }
-function mesMudou(){ COMP=el("mes").value+"-01"; render(VIEW); }
+function mesMudou(){ COMP=el("mes").value+"-01"; ir(VISTA); }
 
-/* ---------------- roteador ---------------- */
-const TIT={resumo:["FECHAMENTO","Resumo do mês"],pagamentos:["FECHAMENTO","Pagamentos"],
-  parceiro:["ANÁLISE","Evolução do parceiro"],casa:["ANÁLISE","A casa"],
-  importar:["DADOS","Importar"],ajustes:["DADOS","Edições"]};
-let VIEW="resumo";
-document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active"); fecharMenu(); render(b.dataset.view);
-});
-function render(v){
-  VIEW=v; el("crumb").textContent=TIT[v][0]; el("titulo").textContent=TIT[v][1];
-  el("content").innerHTML='<div class="loading"><div class="spinner"></div>Carregando…</div>';
-  ({resumo:vResumo,pagamentos:vPagamentos,parceiro:vParceiro,casa:vCasa,
-    importar:vImportar,ajustes:vAjustes}[v])();
+/* ================= navegação ================= */
+const ABAS=[["resumo","Fechamento"],["pagamentos","Pagamentos"],["parceiro","Evolução"],
+  ["casa","A casa"],["importar","Importar"],["edicoes","Edições"]];
+const CRUMB={resumo:"FECHAMENTO DO MÊS",pagamentos:"PAGAMENTOS AOS PARCEIROS",
+  parceiro:"EVOLUÇÃO DO PARCEIRO",casa:"O QUE FICA NA CASA",importar:"ENTRADA DE DADOS",
+  edicoes:"O QUE FOI EDITADO À MÃO"};
+let VISTA="resumo";
+function pintarNav(){
+  el("nav").innerHTML=ABAS.map(a=>'<button class="'+(VISTA===a[0]?"on":"")+'" onclick="ir(\''+a[0]+'\')">'+a[1]+'</button>').join("");
 }
-function abrirMenu(){ el("sidebar").classList.add("open"); el("sbFundo").classList.add("on"); }
-function fecharMenu(){ el("sidebar").classList.remove("open"); el("sbFundo").classList.remove("on"); }
-el("menuBtn").onclick=()=>el("sidebar").classList.contains("open")?fecharMenu():abrirMenu();
+function ir(v){
+  VISTA=v; pintarNav(); el("crumb").textContent="GERENCIAL · "+CRUMB[v];
+  el("alvo").innerHTML='<div class="carreg"><div class="giro"></div>Carregando…</div>';
+  ({resumo:vResumo,pagamentos:vPagamentos,parceiro:vParceiro,casa:vCasa,
+    importar:vImportar,edicoes:vEdicoes}[v])();
+}
+
+/* peças reaproveitadas */
+const quadro=(r,v,s,c)=>'<div class="q"><div class="rot">'+r+'</div>'+
+  '<div class="vl'+(c?" "+c:"")+'">'+v+'</div><div class="sb">'+s+'</div></div>';
+const linhaEx=(sg,cls,rot,val,extra)=>'<div class="ex'+(extra||"")+'">'+
+  '<span class="sg sg-'+cls+'">'+sg+'</span><span class="rt">'+rot+'</span>'+
+  '<span class="vl'+(Number(val)<0?" rubro":"")+'">'+(Number(val)>0&&cls==="ma"?"+ ":"")+brl(val)+'</span></div>';
+const secTopo=(ic,cor,tt,st,chips)=>'<div class="sec-topo"><div class="ladr '+cor+'">'+ic+'</div>'+
+  '<div><div class="tt">'+tt+'</div><div class="st">'+st+'</div></div>'+
+  '<div class="sec-chips">'+(chips||"")+'</div></div>';
+const IC={tela:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4" stroke-linecap="round"/></svg>',
+  torta:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v9h9a9 9 0 1 1-9-9z" stroke-linejoin="round"/></svg>',
+  lista:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg>',
+  nota:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></svg>',
+  subir:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0-12l-4 4m4-4l4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  linha:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 3 6-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 8h4v4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  casa:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10l8-6 8 6v10" stroke-linejoin="round"/><path d="M9 20v-6h6v6" stroke-linejoin="round"/></svg>',
+  escudo:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6z" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>'};
 
 /* =====================================================================
-   RESUMO DO MÊS — a aba Resumo da planilha
-   As colunas seguem a ordem dela, porque a ordem conta a conta se
-   formando: quem é, o que trouxe, o que gerou, o que consumiu, e então
-   o cálculo. Os dois cenários ficam lado a lado, como na planilha.
+   FECHAMENTO — o mês inteiro como extrato, e as barras logo abaixo
    ===================================================================== */
-let LINHAS=[], ORDEM="a_pagar", BUSCA="", SO_NEG=false;
+let LINHAS=[], ORDEM="pagar_bonus", BUSCA="", SO_NEG=false, ABRIU=false;
 
 async function vResumo(){
   const r=await sb.from("vw_gerencial_resumo").select("*").eq("competencia",COMP);
-  if(r.error) return erro(r.error);
+  if(r.error) return falha(r.error);
   LINHAS=r.data||[];
   if(!LINHAS.length){
-    el("content").innerHTML='<div class="note">Nada em '+mesNome(COMP)+
-      '. Suba o arquivo de produção em <b>Importar</b>, ou escolha outro mês.</div>';
+    el("alvo").innerHTML='<div class="cx" style="padding:40px;text-align:center">'+
+      '<div style="font-size:16px;font-weight:700;margin-bottom:8px">Nada em '+mesNome(COMP)+'</div>'+
+      '<div style="font-size:13px;color:var(--dim);line-height:1.6">Suba o arquivo de produção em '+
+      '<b>Importar</b>, ou escolha outro mês no alto da tela.</div></div>';
     return;
   }
   pintarResumo();
 }
 
-const soma = (l,c) => l.reduce((a,x)=>a+(Number(x[c])||0),0);
+function pintarResumo(){
+  const L=LINHAS;
+  const rec=soma(L,"receita_aai"), bon=soma(L,"bonus"), cus=soma(L,"custos_plataforma");
+  const rmp=soma(L,"rmp_bonus"), liq=soma(L,"liquido_bonus"), pag=soma(L,"pagar_bonus");
+  const imp=rmp-liq, casa=liq-pag;
+  const ctr=soma(L,"contratos"), zer=soma(L,"zeragens");
+  const alt=(L[0]||{}).imposto_pct;
+  const neg=L.filter(x=>Number(x.pagar_bonus)<0).length;
+  const semP=L.filter(x=>!x.parceiro&&Number(x.pagar_bonus)!==0).length;
+  const semCusto=cus===0;
+  const pagos=L.filter(x=>x.status_pagamento==="pago");
+
+  el("alvo").innerHTML =
+    (semCusto?'<div class="aviso r"><b>Este mês está sem custo de plataforma.</b> O valor a pagar '+
+      'está inflado, porque o desconto não entrou. Suba o arquivo de custos pelo CRM antes de pagar alguém.</div>':'')+
+    ((L[0]||{}).fechado?'<div class="aviso c">Competência <b>fechada</b> — nada pode ser editado nem reimportado.</div>':'')+
+
+    '<div class="duo">'+
+      '<div class="cx cx-luz ident"><div class="rot">Competência</div>'+
+        '<div class="gr">'+mesNome(COMP).replace(" de "," <em>de</em> ")+'</div>'+
+        '<div class="pe">'+nf(L.length)+' barras no fechamento · <b>'+nf(pagos.length)+'</b> já pagas'+
+          (neg?' · <b class="rubro">'+nf(neg)+'</b> negativas':'')+'</div></div>'+
+      '<div class="cx quad">'+
+        quadro("Contratos no mês",nf(ctr),"BM&F, DMA","azul")+
+        quadro("Zeragem",nf(zer),"contratos encerrados pela mesa")+
+        quadro("Receita AAI",brl(rec),"comissão repassada","verde")+
+        quadro("Bônus das faixas",brl(bon),"incentivo dos pontos","verde")+
+      '</div></div>'+
+
+    '<div class="cx cx-luz heroi">'+
+      '<div class="heroi-e"><div class="rot"><i></i>A pagar aos parceiros</div>'+
+        '<div class="gr">'+brl(pag)+'</div>'+
+        '<div class="pe">É <b>'+pct((L[0]||{}).pct_parceiro)+'</b> do líquido, depois do imposto. '+
+          'Do mesmo líquido, <b>'+brl(casa)+'</b> ficam na casa.</div></div>'+
+      '<div class="extrato">'+
+        linhaEx("%","pc","Receita AAI",rec)+
+        linhaEx("+","ma","Bônus das faixas",bon)+
+        linhaEx("−","me","Custo de plataforma",cus)+
+        linhaEx("=","ig","Receita − plataformas",rmp," total")+
+        linhaEx("−","me","Imposto ("+pct(alt)+")",-imp)+
+        linhaEx("=","ig","Líquido",liq," total")+
+        linhaEx("=","ig",pct((L[0]||{}).pct_parceiro)+" para os parceiros",pag," final")+
+      '</div></div>'+
+
+    secBarras()+
+    secCenarios()+
+    (semP?'<div class="aviso a"><b>'+nf(semP)+' barras com valor e sem parceiro definido.</b> '+
+      'Elas entram no total, mas ninguém está indicado para receber.</div>':'');
+}
+
+function secBarras(){
+  const l=filtradas();
+  return '<div class="cx sec">'+
+    secTopo(IC.lista,"","Todas as barras","o fechamento linha a linha",
+      '<span class="chip"><b>'+nf(LINHAS.length)+'</b> barras</span>'+
+      '<span class="chip"><b>'+nf(LINHAS.filter(x=>x.editado).length)+'</b> editadas</span>')+
+    '<div class="barra-ctrl">'+
+      ['pagar_bonus','receita_aai','contratos','barra'].map(k=>
+        '<button class="bt" style="'+(ORDEM===k?"border-color:rgba(46,229,157,.4);color:var(--verde)":"")+
+        '" onclick="ORDEM=\''+k+'\';pintarResumo()">'+
+        ({pagar_bonus:"Maior a pagar",receita_aai:"Maior receita",contratos:"Mais contratos",barra:"Por nome"}[k])+
+        '</button>').join("")+
+      '<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--dim);margin-left:4px">'+
+        '<input type="checkbox" '+(SO_NEG?"checked":"")+' onchange="SO_NEG=this.checked;pintarResumo()"> só as negativas</label>'+
+      '<input class="ent" placeholder="Buscar barra ou parceiro…" value="'+BUSCA+'" '+
+        'oninput="BUSCA=this.value;pintarResumo()" style="margin-left:auto;flex:0 0 230px">'+
+      '<button class="bt" onclick="baixarResumo()">Exportar</button>'+
+    '</div>'+
+    '<div class="rola">'+tabela(l)+'</div></div>';
+}
 
 function filtradas(){
   let l=LINHAS.slice();
   if(BUSCA){ const t=BUSCA.toLowerCase();
     l=l.filter(x=>String(x.barra||"").toLowerCase().includes(t)||
                   String(x.parceiro||"").toLowerCase().includes(t)); }
-  if(SO_NEG) l=l.filter(x=>Number(x.a_pagar)<0);
-  const dir = ORDEM==="barra" ? 1 : -1;
-  l.sort((a,b)=> ORDEM==="barra"
+  if(SO_NEG) l=l.filter(x=>Number(x.pagar_bonus)<0);
+  l.sort((a,b)=>ORDEM==="barra"
     ? String(a.barra).localeCompare(String(b.barra),"pt-BR")
-    : dir*((Number(b[ORDEM])||0)-(Number(a[ORDEM])||0)));
+    : (Number(b[ORDEM])||0)-(Number(a[ORDEM])||0));
   return l;
 }
 
-function pintarResumo(){
-  const l=filtradas(), semCusto=soma(LINHAS,"custos_plataforma")===0;
-  const neg=LINHAS.filter(x=>Number(x.a_pagar)<0).length;
-  const semParceiro=LINHAS.filter(x=>!x.parceiro && Number(x.a_pagar)!==0).length;
-  const fechado=(LINHAS[0]||{}).fechado;
-
-  el("content").innerHTML =
-    (semCusto?'<div class="note ruim"><b>Este mês está sem custo de plataforma.</b> '+
-      'O valor a pagar está inflado, porque o desconto não entrou. Suba o arquivo de custos '+
-      'pelo CRM antes de pagar alguém.</div>':'')+
-    (fechado?'<div class="note info">Competência <b>fechada</b>. Nada aqui pode ser editado '+
-      'nem reimportado — reabra em Configurações se precisar.</div>':'')+
-
-    '<div class="kpi-grid">'+
-      kpi("Receita AAI", brl(soma(LINHAS,"receita_aai")), nf(LINHAS.length)+" barras")+
-      kpi("Bônus dos pontos", brl(soma(LINHAS,"bonus")), "incentivo das faixas")+
-      kpi("Custo de plataforma", brl(soma(LINHAS,"custos_plataforma")),
-          semCusto?'<span style="color:var(--red)">não importado</span>':"descontado das barras","neg")+
-      kpi("A pagar aos parceiros", brl(soma(LINHAS,"a_pagar")),
-          neg?nf(neg)+" barras negativas":"nenhuma barra negativa","pos")+
-    '</div>'+
-
-    '<div class="sol-tabs">'+
-      aba("a_pagar","Maior valor a pagar")+aba("receita_aai","Maior receita")+
-      aba("contratos","Mais contratos")+aba("barra","Por nome")+
-      '<label style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-dim);margin-left:6px">'+
-        '<input type="checkbox" '+(SO_NEG?"checked":"")+' onchange="SO_NEG=this.checked;pintarResumo()"> só as negativas</label>'+
-      '<input class="search" placeholder="Buscar barra ou parceiro…" value="'+BUSCA+'" '+
-        'oninput="BUSCA=this.value;pintarResumo()" style="margin-left:auto;flex:0 0 240px">'+
-      '<button class="btn-rd" onclick="baixarResumo()">Exportar</button>'+
-    '</div>'+
-
-    (semParceiro?'<div class="note"><b>'+nf(semParceiro)+' barras com valor e sem parceiro definido.</b> '+
-      'Elas entram no total, mas ninguém está indicado para receber.</div>':'')+
-
-    '<div class="panel"><div class="tabela-larga">'+tabelaResumo(l)+'</div></div>'+
-    '<div style="font-size:11.5px;color:var(--text-faint);margin-top:12px;line-height:1.6">'+
-      'Zeragem é informativa e não entra em nenhuma conta, como na planilha. '+
-      'O cenário do <b>Bônus</b> é o que vale para o pagamento; o de <b>R$ 0,03 por contrato</b> '+
-      'fica ao lado para comparação. Clique numa linha para editar qualquer número.</div>';
-}
-
-const kpi=(r,v,s,c)=>'<div class="kpi"><div class="k-label">'+r+'</div>'+
-  '<div class="k-val'+(c?" "+c:"")+'">'+v+'</div><div class="k-sub">'+s+'</div></div>';
-const aba=(k,r)=>'<button class="sol-tab '+(ORDEM===k?"on":"")+'" onclick="ORDEM=\''+k+'\';pintarResumo()">'+r+'</button>';
-
-function tabelaResumo(l){
+function tabela(l){
   const t=c=>soma(l,c);
   return '<table><thead><tr>'+
-    '<th>Barra</th><th>Parceiro</th><th class="num">Novos</th><th class="num">Contratos</th>'+
-    '<th class="num">Zeragens</th><th class="num">Receita AAI</th><th class="num">Bônus</th>'+
-    '<th class="num">R$ 0,03/ct</th><th class="num">Custos</th>'+
-    '<th class="grp" colspan="4">Cenário do bônus</th>'+
-    '<th class="grp" colspan="2">R$ 0,03 por contrato</th>'+
-    '<th></th></tr>'+
-    '<tr><th colspan="9"></th>'+
-    '<th class="num sep">Rec − Plat</th><th class="num">Líquido</th><th class="num">%</th><th class="num">A pagar</th>'+
-    '<th class="num sep">Líquido</th><th class="num">A pagar</th><th></th></tr></thead><tbody>'+
+    '<th>Barra</th><th>Parceiro</th><th class="n">Novos</th><th class="n">Contratos</th>'+
+    '<th class="n">Zeragens</th><th class="n">Receita AAI</th><th class="n">Bônus</th>'+
+    '<th class="n">Custos</th><th class="n s">Líquido</th><th class="n">%</th>'+
+    '<th class="n">A pagar</th><th></th></tr></thead><tbody>'+
     l.map(function(x,i){
-      const negativa=Number(x.a_pagar)<0;
+      const neg=Number(x.pagar_bonus)<0;
       return '<tr onclick="editar('+i+')" style="cursor:pointer">'+
-        '<td><div class="cell-name"><span class="mini-av">'+ini(x.barra)+'</span>'+x.barra+
-          (x.editado?' <span class="tag t-amber" title="Editado: '+(x.campos_ajustados||"")+'">editado</span>':"")+
-          (x.status_pagamento==="pago"?' <span class="tag t-green">pago</span>':"")+'</div></td>'+
-        '<td class="dim">'+(x.parceiro||'<span class="tag t-off">sem parceiro</span>')+'</td>'+
-        '<td class="num dim">'+(Number(x.novos_clientes)||"—")+'</td>'+
-        '<td class="num">'+(Number(x.contratos)?nf(x.contratos):"—")+'</td>'+
-        '<td class="num dim">'+(Number(x.zeragens)?nf(x.zeragens):"—")+'</td>'+
-        '<td class="num">'+brl0(x.receita_aai)+'</td>'+
-        '<td class="num">'+brl0(x.bonus)+'</td>'+
-        '<td class="num dim">'+brl0(x.valor_por_contrato)+'</td>'+
-        '<td class="num'+(Number(x.custos_plataforma)<0?" neg":"")+'">'+brl0(x.custos_plataforma)+'</td>'+
-        '<td class="num sep">'+brl0(x.rmp_bonus)+'</td>'+
-        '<td class="num">'+brl0(x.liquido_bonus)+'</td>'+
-        '<td class="num dim">'+pctf(x.pct_parceiro)+'</td>'+
-        '<td class="num" style="font-weight:700'+(negativa?";color:var(--red)":"")+'">'+brl0(x.pagar_bonus)+'</td>'+
-        '<td class="num sep dim">'+brl0(x.liquido_contrato)+'</td>'+
-        '<td class="num dim">'+brl0(x.pagar_contrato)+'</td>'+
-        '<td><button class="btn-rd" onclick="event.stopPropagation();editar('+i+')">editar</button></td></tr>';
+        '<td><div class="nome"><span class="ini">'+ini(x.barra)+'</span>'+x.barra+
+          (x.editado?' <span class="et et-a" title="'+(x.campos_ajustados||"")+'">editado</span>':"")+
+          (x.status_pagamento==="pago"?' <span class="et et-v">pago</span>':"")+'</div></td>'+
+        '<td class="d">'+(x.parceiro||'<span class="et et-o">sem parceiro</span>')+'</td>'+
+        '<td class="n f">'+(Number(x.novos_clientes)||"—")+'</td>'+
+        '<td class="n">'+(Number(x.contratos)?nf(x.contratos):"—")+'</td>'+
+        '<td class="n f">'+(Number(x.zeragens)?nf(x.zeragens):"—")+'</td>'+
+        '<td class="n">'+brl0(x.receita_aai)+'</td>'+
+        '<td class="n">'+brl0(x.bonus)+'</td>'+
+        '<td class="n'+(Number(x.custos_plataforma)<0?" rubro":"")+'">'+brl0(x.custos_plataforma)+'</td>'+
+        '<td class="n s d">'+brl0(x.liquido_bonus)+'</td>'+
+        '<td class="n f">'+pct(x.pct_parceiro)+'</td>'+
+        '<td class="n" style="font-weight:800'+(neg?";color:var(--vermelho)":"")+'">'+brl0(x.pagar_bonus)+'</td>'+
+        '<td><button class="bt" style="padding:6px 12px" onclick="event.stopPropagation();editar('+i+')">editar</button></td></tr>';
     }).join("")+
-    '</tbody><tfoot><tr>'+
-      '<td>'+nf(l.length)+' barras</td><td></td>'+
-      '<td class="num">'+nf(t("novos_clientes"))+'</td>'+
-      '<td class="num">'+nf(t("contratos"))+'</td>'+
-      '<td class="num">'+nf(t("zeragens"))+'</td>'+
-      '<td class="num">'+brl(t("receita_aai"))+'</td>'+
-      '<td class="num">'+brl(t("bonus"))+'</td>'+
-      '<td class="num">'+brl(t("valor_por_contrato"))+'</td>'+
-      '<td class="num neg">'+brl(t("custos_plataforma"))+'</td>'+
-      '<td class="num sep">'+brl(t("rmp_bonus"))+'</td>'+
-      '<td class="num">'+brl(t("liquido_bonus"))+'</td><td></td>'+
-      '<td class="num">'+brl(t("pagar_bonus"))+'</td>'+
-      '<td class="num sep dim">'+brl(t("liquido_contrato"))+'</td>'+
-      '<td class="num dim">'+brl(t("pagar_contrato"))+'</td><td></td>'+
-    '</tr></tfoot></table>';
+    '</tbody><tfoot><tr><td>'+nf(l.length)+' barras</td><td></td>'+
+      '<td class="n">'+nf(t("novos_clientes"))+'</td><td class="n">'+nf(t("contratos"))+'</td>'+
+      '<td class="n">'+nf(t("zeragens"))+'</td><td class="n">'+brl(t("receita_aai"))+'</td>'+
+      '<td class="n">'+brl(t("bonus"))+'</td><td class="n rubro">'+brl(t("custos_plataforma"))+'</td>'+
+      '<td class="n s">'+brl(t("liquido_bonus"))+'</td><td></td>'+
+      '<td class="n verde">'+brl(t("pagar_bonus"))+'</td><td></td></tr></tfoot></table>';
 }
 
-/* ---------------- edição ----------------
-   O valor importado nunca é sobrescrito: a edição entra como ajuste por
-   cima, guardando o original e quem mudou. Apagar o ajuste volta tudo. */
+/* Os dois cenários da planilha, um do lado do outro. */
+function secCenarios(){
+  const b=soma(LINHAS,"pagar_bonus"), c=soma(LINHAS,"pagar_contrato");
+  const tot=Math.abs(b)+Math.abs(c)||1;
+  const pb=Math.round(100*Math.abs(b)/tot), pc=100-pb;
+  return '<div class="cx sec">'+
+    secTopo(IC.torta,"a","Os dois cenários","o mesmo mês nas duas réguas de bônus",
+      '<span class="chip">bônus é o que <b>vale</b></span>')+
+    '<div style="padding:0 24px 20px">'+
+      '<div class="emp">'+
+        '<div style="width:'+pb+'%;background:var(--verde)"><div>'+
+          '<div class="p">'+brl(b)+'</div><div class="l">CENÁRIO DO BÔNUS</div></div></div>'+
+        '<div style="width:'+pc+'%;background:var(--ciano)"><div>'+
+          '<div class="p">'+brl(c)+'</div><div class="l">R$ 0,03 POR CONTRATO</div></div></div>'+
+      '</div>'+
+      '<div class="emp-leg">'+
+        '<div class="it"><i style="background:var(--verde)"></i><div>'+
+          '<div class="r">Cenário do bônus</div><div class="v">'+brl(b)+
+          ' <span>· '+brl(soma(LINHAS,"bonus"))+' de incentivo</span></div></div></div>'+
+        '<div class="it"><i style="background:var(--ciano)"></i><div>'+
+          '<div class="r">R$ 0,03 por contrato</div><div class="v">'+brl(c)+
+          ' <span>· '+nf(soma(LINHAS,"contratos"))+' contratos</span></div></div></div>'+
+        '<div class="it"><i style="background:rgba(255,255,255,.18)"></i><div>'+
+          '<div class="r">Diferença</div><div class="v">'+brl(Math.abs(b-c))+
+          ' <span>· o que muda entre as duas</span></div></div></div>'+
+      '</div></div></div>';
+}
+
+/* ================= edição ================= */
 const CAMPOS=[["novos_clientes","Novos clientes",0],["contratos","Contratos",0],
   ["receita_aai","Receita AAI",2],["bonus","Bônus",2],["custos_plataforma","Custos de plataforma",2],
   ["imposto_pct","Imposto (0,1957 = 19,57%)",4],["pct_parceiro","% do parceiro (0,5 = 50%)",4],
@@ -530,326 +613,341 @@ const CAMPOS=[["novos_clientes","Novos clientes",0],["contratos","Contratos",0],
 let EDIT=null;
 
 function editar(i){
-  const x=filtradas()[i]; if(!x) return;
-  EDIT=x;
-  el("overlay").classList.add("open"); el("drawer").classList.add("open");
-  el("drName").textContent=x.barra;
-  el("drSub").textContent=(x.parceiro||"sem parceiro")+" · "+mesNome(COMP);
-  const pode = PAPEL!=="leitor" && !x.fechado;
-  el("drBody").innerHTML =
-    '<div class="dr-sec">Como fica</div>'+
-    '<div class="panel" style="padding:14px 16px">'+
-      linhaConta("Receita AAI",x.receita_aai)+linhaConta("Bônus",x.bonus)+
-      linhaConta("Custos de plataforma",x.custos_plataforma)+
-      '<div style="height:1px;background:var(--border);margin:8px 0"></div>'+
-      linhaConta("Receita − plataformas",x.rmp_bonus)+
-      linhaConta("Imposto de "+pctf(x.imposto_pct), -(Number(x.rmp_bonus)-Number(x.liquido_bonus)))+
-      linhaConta("Líquido",x.liquido_bonus)+
-      '<div style="height:1px;background:var(--border);margin:8px 0"></div>'+
-      linhaConta(pctf(x.pct_parceiro)+" para o parceiro", x.pagar_bonus, true)+
-      linhaConta("Fica na casa", Number(x.liquido_bonus)-Number(x.pagar_bonus))+
+  const x=filtradas()[i]; if(!x) return; EDIT=x;
+  el("veu").classList.add("on"); el("gav").classList.add("on");
+  el("gavN").textContent=x.barra;
+  el("gavS").textContent=(x.parceiro||"sem parceiro")+" · "+mesNome(COMP);
+  const pode=PAPEL!=="leitor"&&!x.fechado;
+  el("gavB").innerHTML =
+    '<div class="gav-sec">Como fica</div>'+
+    '<div style="border:1px solid var(--linha);border-radius:14px;padding:6px">'+
+      linhaEx("%","pc","Receita AAI",x.receita_aai)+
+      linhaEx("+","ma","Bônus",x.bonus)+
+      linhaEx("−","me","Custo de plataforma",x.custos_plataforma)+
+      linhaEx("=","ig","Receita − plataformas",x.rmp_bonus," total")+
+      linhaEx("−","me","Imposto ("+pct(x.imposto_pct)+")",-(Number(x.rmp_bonus)-Number(x.liquido_bonus)))+
+      linhaEx("=","ig","Líquido",x.liquido_bonus," total")+
+      linhaEx("=","ig",pct(x.pct_parceiro)+" para o parceiro",x.pagar_bonus," final")+
+      linhaEx("=","ig","Fica na casa",Number(x.liquido_bonus)-Number(x.pagar_bonus))+
     '</div>'+
     (pode
-      ? '<div class="dr-sec">Editar</div>'+
-        CAMPOS.map(function(c){
-          const v=Number(x[c[0]])||0;
-          return '<div class="ed-linha"><label>'+c[1]+'</label>'+
+      ? '<div class="gav-sec">Editar</div>'+
+        CAMPOS.map(function(c){ const v=Number(x[c[0]])||0;
+          return '<div class="ed"><label>'+c[1]+'</label>'+
             '<input type="number" step="'+(c[2]?Math.pow(10,-c[2]):1)+'" id="ed_'+c[0]+'" value="'+v+'" '+
-            'oninput="this.closest(\'.ed-linha\').classList.toggle(\'mudou\',this.value!=\''+v+'\')">'+
-            '<span class="orig">'+(c[2]===4?pctf(v):c[2]?brl(v):nf(v))+'</span></div>';
-        }).join("")+
-        '<div class="ed-linha"><label>Motivo</label>'+
-          '<input type="text" id="ed_motivo" placeholder="por que está mudando" style="text-align:left"></div>'+
-        '<div style="display:flex;gap:9px;margin-top:18px;flex-wrap:wrap">'+
-          '<button class="cfg-save" onclick="salvarEdicao()">Salvar alterações</button>'+
-          (x.editado?'<button class="btn-rd" onclick="desfazerTudo()">Desfazer as edições</button>':"")+
-          '<button class="btn-rd" onclick="fecharDrawer()">Cancelar</button>'+
-        '</div>'+
-        '<div style="font-size:11.5px;color:var(--text-faint);margin-top:12px;line-height:1.6">'+
+            'oninput="this.closest(\'.ed\').classList.toggle(\'mud\',this.value!=\''+v+'\')">'+
+            '<span class="og">'+(c[2]===4?pct(v):c[2]?brlx(v):nf(v))+'</span></div>'; }).join("")+
+        '<div class="ed"><label>Motivo</label><input type="text" id="ed_motivo" '+
+          'placeholder="por que está mudando" style="text-align:left"></div>'+
+        '<div style="display:flex;gap:9px;margin-top:20px;flex-wrap:wrap">'+
+          '<button class="bt-f" onclick="salvarEdicao()">Salvar alterações</button>'+
+          (x.editado?'<button class="bt" onclick="desfazerTudo()">Desfazer as edições</button>':"")+
+          '<button class="bt" onclick="fecharGav()">Cancelar</button></div>'+
+        '<div style="font-size:11.5px;color:var(--fraco);margin-top:14px;line-height:1.65">'+
           'O número importado não é apagado: a edição entra por cima e fica registrada com o valor '+
           'anterior, seu nome e o motivo. Desfazer volta ao original.</div>'
-      : '<div class="note" style="margin-top:18px">'+(x.fechado
-          ? "Competência fechada — nada pode ser alterado."
-          : "Seu acesso é de leitura. Peça a um operador para editar.")+'</div>');
+      : '<div class="aviso" style="margin-top:20px">'+(x.fechado
+          ?"Competência fechada — nada pode ser alterado."
+          :"Seu acesso é de leitura. Peça a um operador para editar.")+'</div>');
 }
-function linhaConta(r,v,forte){
-  return '<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px'+
-    (forte?";font-weight:700":"")+'"><span class="dim">'+r+'</span>'+
-    '<span class="num'+(Number(v)<0?" neg":"")+'">'+brl(v)+'</span></div>';
-}
-function fecharDrawer(){ el("overlay").classList.remove("open"); el("drawer").classList.remove("open"); }
-el("drClose").onclick=fecharDrawer; el("overlay").onclick=fecharDrawer;
-document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharDrawer(); });
+function fecharGav(){ el("veu").classList.remove("on"); el("gav").classList.remove("on"); }
+el("gavX").onclick=fecharGav; el("veu").onclick=fecharGav;
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharGav(); });
 
 async function salvarEdicao(){
   const x=EDIT; if(!x) return;
   const motivo=el("ed_motivo").value.trim();
   const mudou=CAMPOS.filter(c=>Number(el("ed_"+c[0]).value)!==(Number(x[c[0]])||0));
-  if(!mudou.length){ toast("Nada mudou","",true); return; }
-  if(!motivo && !confirm("Salvar sem informar o motivo?\n\nO motivo é o que explica a diferença "+
+  if(!mudou.length){ tor("Nada mudou","",true); return; }
+  if(!motivo&&!confirm("Salvar sem informar o motivo?\n\nO motivo é o que explica a diferença "+
     "quando alguém olhar este mês daqui a seis meses.")) return;
   for(const c of mudou){
     const r=await sb.rpc("salvar_ajuste",{p_competencia:COMP,p_barra:x.barra,
       p_campo:c[0],p_valor:Number(el("ed_"+c[0]).value),p_motivo:motivo||null});
-    if(r.error){ toast("Não deu para salvar "+c[1], r.error.message, true); return; }
+    if(r.error){ tor("Não deu para salvar "+c[1],r.error.message,true); return; }
   }
-  toast("Alterações salvas", nf(mudou.length)+" campo(s) em "+x.barra);
-  fecharDrawer(); vResumo();
+  tor("Alterações salvas",nf(mudou.length)+" campo(s) em "+x.barra);
+  fecharGav(); vResumo();
 }
 async function desfazerTudo(){
   const x=EDIT; if(!x) return;
   if(!confirm("Desfazer todas as edições de "+x.barra+"?\n\nOs valores voltam ao que foi importado.")) return;
   for(const c of CAMPOS){
     const r=await sb.rpc("desfazer_ajuste",{p_competencia:COMP,p_barra:x.barra,p_campo:c[0]});
-    if(r.error){ toast("Não deu para desfazer", r.error.message, true); return; }
+    if(r.error){ tor("Não deu para desfazer",r.error.message,true); return; }
   }
-  toast("Edições desfeitas", x.barra+" voltou ao importado");
-  fecharDrawer(); vResumo();
+  tor("Edições desfeitas",x.barra+" voltou ao importado");
+  fecharGav(); vResumo();
 }
 
-/* ---------------- exportar ---------------- */
+/* ================= exportar ================= */
 function baixarCSV(nome,cab,linhas){
-  const esc=v=>{ v=(v==null?"":String(v)); return /[";\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
-  const csv=[cab.join(";")].concat(linhas.map(l=>l.map(esc).join(";"))).join("\r\n");
+  const e=v=>{ v=(v==null?"":String(v)); return /[";\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const csv=[cab.join(";")].concat(linhas.map(l=>l.map(e).join(";"))).join("\r\n");
   const a=document.createElement("a");
   a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));
   a.download=nome; a.click(); URL.revokeObjectURL(a.href);
-  toast("Planilha gerada", nf(linhas.length)+" linhas");
+  tor("Planilha gerada",nf(linhas.length)+" linhas");
 }
 function baixarResumo(){
-  const l=filtradas();
-  baixarCSV("resumo_"+String(COMP).slice(0,7)+".csv",
+  baixarCSV("fechamento_"+String(COMP).slice(0,7)+".csv",
     ["barra","parceiro","novos clientes","contratos","zeragens","receita AAI","bonus",
-     "R$ 0,03 por contrato","custos de plataforma","receita menos plataformas","liquido",
-     "%","a pagar","liquido cenario R$0,03","a pagar cenario R$0,03","status","editado"],
-    l.map(x=>[x.barra,x.parceiro,x.novos_clientes,x.contratos,x.zeragens,x.receita_aai,x.bonus,
-      x.valor_por_contrato,x.custos_plataforma,x.rmp_bonus,x.liquido_bonus,x.pct_parceiro,
+     "R$ 0,03 por contrato","custos de plataforma","receita menos plataformas","liquido","%",
+     "a pagar","liquido cenario R$0,03","a pagar cenario R$0,03","situacao","editado"],
+    filtradas().map(x=>[x.barra,x.parceiro,x.novos_clientes,x.contratos,x.zeragens,x.receita_aai,
+      x.bonus,x.valor_por_contrato,x.custos_plataforma,x.rmp_bonus,x.liquido_bonus,x.pct_parceiro,
       x.pagar_bonus,x.liquido_contrato,x.pagar_contrato,x.status_pagamento||"aberto",
       x.editado?x.campos_ajustados:""]));
 }
 
 /* =====================================================================
-   PAGAMENTOS — o que a planilha não tem: se foi pago, quando e por quem
+   PAGAMENTOS
    ===================================================================== */
 let FPAG="aberto";
 async function vPagamentos(){
   const r=await sb.from("vw_gerencial_resumo").select("*").eq("competencia",COMP)
-    .order("a_pagar",{ascending:false});
-  if(r.error) return erro(r.error);
-  const todos=(r.data||[]).filter(x=>Number(x.a_pagar)!==0);
+    .order("pagar_bonus",{ascending:false});
+  if(r.error) return falha(r.error);
+  const todos=(r.data||[]).filter(x=>Number(x.pagar_bonus)!==0);
   const pagos=todos.filter(x=>x.status_pagamento==="pago");
   const abertos=todos.filter(x=>x.status_pagamento!=="pago");
   const lista=FPAG==="pago"?pagos:FPAG==="todos"?todos:abertos;
   const semCusto=soma(todos,"custos_plataforma")===0;
+  const tA=soma(abertos,"pagar_bonus"), tP=soma(pagos,"pagar_bonus"), tT=soma(todos,"pagar_bonus");
+  const feito=tT?Math.round(100*tP/tT):0;
 
-  el("content").innerHTML =
-    (semCusto?'<div class="note ruim"><b>Sem custo de plataforma neste mês.</b> '+
-      'Registrar pagamento agora pagaria a mais. Suba o arquivo de custos primeiro.</div>':'')+
-    '<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">'+
-      kpi("Em aberto", brl(soma(abertos,"pagar_bonus")), nf(abertos.length)+" barras")+
-      kpi("Já pago", brl(soma(pagos,"pagar_bonus")), nf(pagos.length)+" barras","pos")+
-      kpi("Total do mês", brl(soma(todos,"pagar_bonus")), mesNome(COMP))+
-    '</div>'+
-    '<div class="sol-tabs">'+
-      ['aberto','pago','todos'].map(k=>'<button class="sol-tab '+(FPAG===k?"on":"")+'" '+
-        'onclick="FPAG=\''+k+'\';vPagamentos()">'+
-        (k==="aberto"?"Em aberto":k==="pago"?"Pagos":"Todos")+'</button>').join("")+
-    '</div>'+
-    (!lista.length?'<div class="empty">Nada neste filtro.</div>'
-    :'<div class="panel"><table><thead><tr><th>Barra</th><th>Parceiro</th>'+
-      '<th class="num">A pagar</th><th>Situação</th><th>Pago em</th><th>Quem registrou</th><th></th></tr></thead><tbody>'+
-      lista.map(x=>{
-        const neg=Number(x.pagar_bonus)<0;
-        return '<tr><td><div class="cell-name"><span class="mini-av">'+ini(x.barra)+'</span>'+x.barra+'</div></td>'+
-          '<td class="dim">'+(x.parceiro||'<span class="tag t-off">sem parceiro</span>')+'</td>'+
-          '<td class="num" style="font-weight:700'+(neg?";color:var(--red)":"")+'">'+brl(x.pagar_bonus)+'</td>'+
-          '<td><span class="status s-'+(x.status_pagamento||"aberto")+'">'+
-            (x.status_pagamento||"aberto")+'</span></td>'+
-          '<td class="dim">'+(x.pago_em?fmtData(x.pago_em):"—")+'</td>'+
-          '<td class="dim">'+(x.registrado_por||"—")+'</td>'+
-          '<td>'+(PAPEL==="leitor"?"" : neg
-            ? '<span class="tag t-off" title="Barra negativa: não há o que pagar">negativa</span>'
-            : x.status_pagamento==="pago"
-              ? '<button class="btn-rd" onclick="pagar(\''+esc1(x.barra)+'\','+x.pagar_bonus+',\'aberto\')">reabrir</button>'
-              : '<button class="cfg-save" style="padding:6px 13px;font-size:12px" '+
-                'onclick="pagar(\''+esc1(x.barra)+'\','+x.pagar_bonus+',\'pago\')">marcar pago</button>')+'</td></tr>';
-      }).join("")+'</tbody></table></div>')+
-    '<div style="font-size:11.5px;color:var(--text-faint);margin-top:12px;line-height:1.6">'+
-      'O valor é congelado no momento em que o pagamento é registrado: reimportar o mês depois '+
-      'não altera o que já foi pago. Barras negativas não aparecem para pagamento — a regra do '+
-      'que fazer com elas ainda não foi definida.</div>';
+  el("alvo").innerHTML =
+    (semCusto?'<div class="aviso r"><b>Sem custo de plataforma neste mês.</b> Registrar pagamento '+
+      'agora pagaria a mais. Suba o arquivo de custos primeiro.</div>':'')+
+    '<div class="cx cx-luz heroi">'+
+      '<div class="heroi-e"><div class="rot"><i></i>Ainda em aberto</div>'+
+        '<div class="gr">'+brl(tA)+'</div>'+
+        '<div class="pe"><b>'+nf(abertos.length)+'</b> barras esperando pagamento, de '+
+          nf(todos.length)+' com valor em '+mesNome(COMP)+'.</div></div>'+
+      '<div class="extrato">'+
+        linhaEx("=","ig","Total do mês",tT," total")+
+        linhaEx("−","me","Já pago",-tP)+
+        linhaEx("=","ig","Falta pagar",tA," final")+
+        '<div style="padding:14px 16px">'+
+          '<div class="emp" style="height:34px">'+
+            '<div style="width:'+Math.max(feito,3)+'%;background:var(--verde)"><div class="p" style="font-size:13px">'+feito+'%</div></div>'+
+            '<div style="width:'+(100-feito)+'%;background:rgba(255,255,255,.07)"></div></div>'+
+          '<div style="font-size:11.5px;color:var(--fraco);margin-top:9px">'+
+            nf(pagos.length)+' de '+nf(todos.length)+' barras pagas</div></div>'+
+      '</div></div>'+
+    '<div class="cx sec">'+
+      secTopo(IC.nota,"v","Pagamentos","quem já recebeu, quando, e por quem foi registrado",
+        ['aberto','pago','todos'].map(k=>'<button class="chip" style="cursor:pointer;'+
+          (FPAG===k?"border-color:rgba(46,229,157,.4);color:var(--verde)":"")+'" '+
+          'onclick="FPAG=\''+k+'\';vPagamentos()">'+
+          (k==="aberto"?"Em aberto":k==="pago"?"Pagos":"Todos")+'</button>').join(""))+
+      (!lista.length?'<div class="vazio">Nada neste filtro.</div>'
+      :'<div class="rola"><table><thead><tr><th>Barra</th><th>Parceiro</th><th class="n">A pagar</th>'+
+        '<th>Situação</th><th>Pago em</th><th>Quem registrou</th><th></th></tr></thead><tbody>'+
+        lista.map(x=>{ const neg=Number(x.pagar_bonus)<0;
+          return '<tr><td><div class="nome"><span class="ini">'+ini(x.barra)+'</span>'+x.barra+'</div></td>'+
+            '<td class="d">'+(x.parceiro||'<span class="et et-o">sem parceiro</span>')+'</td>'+
+            '<td class="n" style="font-weight:800'+(neg?";color:var(--vermelho)":"")+'">'+brl(x.pagar_bonus)+'</td>'+
+            '<td><span class="et '+(x.status_pagamento==="pago"?"et-v":"et-o")+'">'+
+              (x.status_pagamento||"aberto")+'</span></td>'+
+            '<td class="d">'+(x.pago_em?fmtData(x.pago_em):"—")+'</td>'+
+            '<td class="d">'+(x.registrado_por||"—")+'</td>'+
+            '<td>'+(PAPEL==="leitor"?"":neg
+              ?'<span class="et et-o" title="Barra negativa: não há o que pagar">negativa</span>'
+              :x.status_pagamento==="pago"
+                ?'<button class="bt" onclick="pagar(\''+esc1(x.barra)+'\','+x.pagar_bonus+',\'aberto\')">reabrir</button>'
+                :'<button class="bt-f" style="padding:7px 14px;font-size:12px" onclick="pagar(\''+
+                  esc1(x.barra)+'\','+x.pagar_bonus+',\'pago\')">marcar pago</button>')+'</td></tr>';
+        }).join("")+'</tbody></table></div>')+
+      '<div class="sec-pe" style="cursor:default;font-weight:400;font-size:12px;color:var(--fraco)">'+
+        'O valor é congelado quando o pagamento é registrado — reimportar o mês depois não altera o que já foi pago. '+
+        'Barra negativa não aparece para pagamento: a regra do que fazer com ela ainda não foi definida.</div>'+
+    '</div>';
 }
-const esc1 = s => String(s).replace(/'/g,"\\'");
-
 async function pagar(barra,valor,situacao){
-  if(situacao==="pago" && !confirm("Marcar "+barra+" como pago?\n\nValor: "+brl(valor)+
+  if(situacao==="pago"&&!confirm("Marcar "+barra+" como pago?\n\nValor: "+brlx(valor)+
     "\n\nFica registrado em seu nome, com a data de hoje.")) return;
   const r=await sb.rpc("registrar_pagamento",{p_competencia:COMP,p_barra:barra,
     p_valor:valor,p_status:situacao});
-  if(r.error){ toast("Não deu para registrar", r.error.message, true); return; }
-  toast(situacao==="pago"?"Pagamento registrado":"Reaberto", barra+" · "+brl(valor));
+  if(r.error){ tor("Não deu para registrar",r.error.message,true); return; }
+  tor(situacao==="pago"?"Pagamento registrado":"Reaberto",barra+" · "+brl(valor));
   vPagamentos();
 }
 
 /* =====================================================================
-   EVOLUÇÃO DO PARCEIRO — o ano inteiro de uma barra
+   EVOLUÇÃO DO PARCEIRO
    ===================================================================== */
-let BARRA_SEL=null;
+let BARRA=null;
 async function vParceiro(){
-  const r=await sb.from("vw_gerencial_resumo").select("barra,parceiro,a_pagar")
-    .eq("competencia",COMP).order("a_pagar",{ascending:false});
-  if(r.error) return erro(r.error);
-  const opcoes=(r.data||[]);
-  el("content").innerHTML =
-    '<div class="toolbar" style="border:1px solid var(--border);border-radius:12px;margin-bottom:18px">'+
-      '<select class="search select" id="selBarra" style="flex:0 0 320px" onchange="verBarra(this.value)">'+
+  const r=await sb.from("vw_gerencial_resumo").select("barra,parceiro,pagar_bonus")
+    .eq("competencia",COMP).order("pagar_bonus",{ascending:false});
+  if(r.error) return falha(r.error);
+  el("alvo").innerHTML =
+    '<div class="cx sec">'+
+      secTopo(IC.linha,"","Evolução do parceiro","o ano inteiro de uma barra, mês a mês")+
+      '<div class="barra-ctrl"><select class="ent sel" style="flex:0 0 340px" onchange="verBarra(this.value)">'+
         '<option value="">Escolha uma barra…</option>'+
-        opcoes.map(x=>'<option value="'+x.barra+'" '+(BARRA_SEL===x.barra?"selected":"")+'>'+
+        (r.data||[]).map(x=>'<option value="'+x.barra+'" '+(BARRA===x.barra?"selected":"")+'>'+
           x.barra+(x.parceiro?" — "+x.parceiro:"")+'</option>').join("")+
-      '</select>'+
-      '<span style="font-size:12px;color:var(--text-dim)">o ano inteiro, mês a mês</span>'+
-    '</div><div id="fichaBarra"></div>';
-  if(BARRA_SEL) verBarra(BARRA_SEL);
-  else el("fichaBarra").innerHTML='<div class="empty">Escolha uma barra para ver a evolução dela no ano.</div>';
+      '</select></div></div><div id="ficha"></div>';
+  if(BARRA) verBarra(BARRA);
+  else el("ficha").innerHTML='<div class="cx vazio">Escolha uma barra para ver a evolução dela no ano.</div>';
 }
 
 async function verBarra(b){
-  BARRA_SEL=b; if(!b){ el("fichaBarra").innerHTML=""; return; }
-  el("fichaBarra").innerHTML='<div class="loading"><div class="spinner"></div>Carregando…</div>';
+  BARRA=b; if(!b){ el("ficha").innerHTML=""; return; }
+  el("ficha").innerHTML='<div class="carreg"><div class="giro"></div>Carregando…</div>';
   const ano=Number(String(COMP).slice(0,4));
   const r=await sb.rpc("gerencial_ficha_barra",{p_barra:b,p_ano:ano});
-  if(r.error) return erro(r.error,"fichaBarra");
-  const f=r.data||{}, meses=(f.meses||[]).filter(m=>Number(m.a_pagar)!==0||Number(m.receita_aai)!==0);
-  const t=f.total||{};
-  if(!meses.length){ el("fichaBarra").innerHTML='<div class="empty">Sem movimento em '+ano+'.</div>'; return; }
-  const max=Math.max(1,...meses.map(m=>Math.abs(Number(m.a_pagar)||0)));
+  if(r.error) return falha(r.error,"ficha");
+  const f=r.data||{}, t=f.total||{};
+  const m=(f.meses||[]).filter(x=>Number(x.a_pagar)!==0||Number(x.receita_aai)!==0);
+  if(!m.length){ el("ficha").innerHTML='<div class="cx vazio">Sem movimento em '+ano+'.</div>'; return; }
+  const max=Math.max(1,...m.map(x=>Math.abs(Number(x.a_pagar)||0)));
 
-  el("fichaBarra").innerHTML =
-    '<div class="kpi-grid">'+
-      kpi("Recebeu no ano", brl(t.a_pagar), nf(t.meses_com_dado)+" meses com movimento")+
-      kpi("Receita gerada", brl(t.receita_aai), nf(t.contratos)+" contratos")+
-      kpi("Já pago", brl(t.pago), brl(t.em_aberto)+" em aberto","pos")+
-      kpi("Melhor mês", t.melhor_mes||"—", "pior: "+(t.pior_mes||"—"))+
-    '</div>'+
-    '<div class="panel" style="padding:22px 24px;margin-bottom:18px">'+
-      '<div style="font-size:13px;font-weight:700;margin-bottom:18px">Quanto recebeu mês a mês</div>'+
-      '<div class="serie">'+meses.map(m=>{
-        const v=Number(m.a_pagar)||0;
-        return '<div class="serie-col"><div class="serie-v">'+brl(v)+'</div>'+
-          '<div class="serie-b"><span style="height:'+Math.max(5,Math.round(100*Math.abs(v)/max))+'%'+
-            (v<0?";background:linear-gradient(180deg,rgba(246,92,110,.9),rgba(246,92,110,.2))":"")+'"></span></div>'+
-          '<div class="serie-m">'+mesCurto(m.competencia)+'</div>'+
-          '<div class="serie-d" style="color:'+(m.variacao_pct==null?"var(--text-faint)":
-            m.variacao_pct>0?"var(--green)":"var(--red)")+'">'+
-            (m.variacao_pct==null?"—":(m.variacao_pct>0?"+":"")+m.variacao_pct+"%")+'</div></div>';
-      }).join("")+'</div></div>'+
-    '<div class="panel"><div class="tabela-larga"><table><thead><tr>'+
-      '<th>Mês</th><th class="num">Novos</th><th class="num">Contratos</th><th class="num">Receita AAI</th>'+
-      '<th class="num">Bônus</th><th class="num">Custos</th><th class="num">Líquido</th>'+
-      '<th class="num">Recebeu</th><th class="num">Acumulado</th><th>Pagamento</th></tr></thead><tbody>'+
-      meses.map(m=>'<tr><td style="font-weight:600">'+mesNome(m.competencia)+'</td>'+
-        '<td class="num dim">'+(Number(m.novos_clientes)||"—")+'</td>'+
-        '<td class="num">'+(Number(m.contratos)?nf(m.contratos):"—")+'</td>'+
-        '<td class="num">'+brl0(m.receita_aai)+'</td>'+
-        '<td class="num">'+brl0(m.bonus)+'</td>'+
-        '<td class="num neg">'+brl0(m.custos_plataforma)+'</td>'+
-        '<td class="num dim">'+brl0(m.liquido)+'</td>'+
-        '<td class="num" style="font-weight:700">'+brl0(m.a_pagar)+'</td>'+
-        '<td class="num dim">'+brl(m.a_pagar_acumulado)+'</td>'+
-        '<td><span class="status s-'+(m.status_pagamento||"aberto")+'">'+
-          (m.status_pagamento||"aberto")+'</span></td></tr>').join("")+
+  el("ficha").innerHTML =
+    '<div class="duo">'+
+      '<div class="cx cx-luz ident"><div class="rot">Parceiro</div>'+
+        '<div class="gr" style="font-size:30px;letter-spacing:-1px">'+(f.parceiro||"sem parceiro")+'</div>'+
+        '<div class="pe">Barra <b>'+f.barra+'</b> · '+nf(t.meses_com_dado)+' meses com movimento em '+ano+'</div></div>'+
+      '<div class="cx quad">'+
+        quadro("Recebeu no ano",brl(t.a_pagar),"soma dos meses","verde")+
+        quadro("Receita gerada",brl(t.receita_aai),nf(t.contratos)+" contratos")+
+        quadro("Já pago",brl(t.pago),brl(t.em_aberto)+" em aberto","verde")+
+        quadro("Melhor mês",t.melhor_mes||"—","pior: "+(t.pior_mes||"—"),"azul")+
+      '</div></div>'+
+    '<div class="cx sec">'+
+      secTopo(IC.torta,"v","Quanto recebeu por mês","a variação é contra o mês anterior")+
+      '<div class="col">'+m.map(x=>{ const v=Number(x.a_pagar)||0;
+        return '<div class="col-c"><div class="col-v">'+brl(v)+'</div>'+
+          '<div class="col-b"><span style="height:'+Math.max(5,Math.round(100*Math.abs(v)/max))+'%'+
+            (v<0?";background:linear-gradient(180deg,var(--vermelho),rgba(255,92,106,.15))":"")+'"></span></div>'+
+          '<div class="col-m">'+mesCurto(x.competencia)+'</div>'+
+          '<div class="col-d" style="color:'+(x.variacao_pct==null?"var(--fraco)":
+            x.variacao_pct>0?"var(--verde)":"var(--vermelho)")+'">'+
+            (x.variacao_pct==null?"—":(x.variacao_pct>0?"+":"")+x.variacao_pct+"%")+'</div></div>';
+      }).join("")+'</div>'+
+      '<div class="rola"><table><thead><tr><th>Mês</th><th class="n">Novos</th><th class="n">Contratos</th>'+
+        '<th class="n">Receita AAI</th><th class="n">Bônus</th><th class="n">Custos</th>'+
+        '<th class="n">Líquido</th><th class="n s">Recebeu</th><th class="n">Acumulado</th>'+
+        '<th>Pagamento</th></tr></thead><tbody>'+
+      m.map(x=>'<tr><td style="font-weight:600">'+mesNome(x.competencia)+'</td>'+
+        '<td class="n f">'+(Number(x.novos_clientes)||"—")+'</td>'+
+        '<td class="n">'+(Number(x.contratos)?nf(x.contratos):"—")+'</td>'+
+        '<td class="n">'+brl0(x.receita_aai)+'</td><td class="n">'+brl0(x.bonus)+'</td>'+
+        '<td class="n rubro">'+brl0(x.custos_plataforma)+'</td>'+
+        '<td class="n d">'+brl0(x.liquido)+'</td>'+
+        '<td class="n s" style="font-weight:800">'+brl0(x.a_pagar)+'</td>'+
+        '<td class="n f">'+brl(x.a_pagar_acumulado)+'</td>'+
+        '<td><span class="et '+(x.status_pagamento==="pago"?"et-v":"et-o")+'">'+
+          (x.status_pagamento||"aberto")+'</span></td></tr>').join("")+
       '</tbody></table></div></div>';
 }
 
 /* =====================================================================
-   A CASA — o que a planilha não mostra: quanto sobra para a Seja Livre
+   A CASA
    ===================================================================== */
 async function vCasa(){
   const r=await sb.from("vw_gerencial_casa").select("*").order("competencia");
-  if(r.error) return erro(r.error);
+  if(r.error) return falha(r.error);
   const m=(r.data||[]).filter(x=>Number(x.receita_aai)!==0||Number(x.custos)!==0);
-  if(!m.length){ el("content").innerHTML='<div class="empty">Nenhum mês fechado ainda.</div>'; return; }
+  if(!m.length){ el("alvo").innerHTML='<div class="cx vazio">Nenhum mês fechado ainda.</div>'; return; }
   const u=m[m.length-1];
   const max=Math.max(1,...m.map(x=>Number(x.a_pagar_parceiros)||0));
+  const liq=Number(u.liquido)||0, par=Number(u.a_pagar_parceiros)||0, cas=Number(u.fica_na_casa)||0;
+  const tot=Math.abs(par)+Math.abs(cas)||1;
+  const pp=Math.round(100*Math.abs(par)/tot);
 
-  el("content").innerHTML =
-    '<div class="kpi-grid">'+
-      kpi("Líquido do mês", brl(u.liquido), mesNome(u.competencia))+
-      kpi("Vai para os parceiros", brl(u.a_pagar_parceiros), nf(u.barras_com_movimento)+" barras")+
-      kpi("Fica na casa", brl(u.fica_na_casa), "depois de pagar todo mundo","pos")+
-      kpi("Barras negativas", nf(u.barras_negativas), "custo maior que a receita",
-          Number(u.barras_negativas)?"neg":"")+
-    '</div>'+
-    '<div class="panel" style="padding:22px 24px;margin-bottom:18px">'+
-      '<div style="font-size:13px;font-weight:700;margin-bottom:18px">Repasse aos parceiros, mês a mês</div>'+
-      '<div class="serie">'+m.map(x=>'<div class="serie-col">'+
-        '<div class="serie-v">'+brl(x.a_pagar_parceiros)+'</div>'+
-        '<div class="serie-b"><span style="height:'+
-          Math.max(5,Math.round(100*(Number(x.a_pagar_parceiros)||0)/max))+'%"></span></div>'+
-        '<div class="serie-m">'+mesCurto(x.competencia)+'</div>'+
-        '<div class="serie-d dim">'+nf(x.barras_com_movimento)+' barras</div></div>').join("")+
+  el("alvo").innerHTML =
+    '<div class="cx cx-luz heroi">'+
+      '<div class="heroi-e"><div class="rot"><i></i>Fica na casa</div>'+
+        '<div class="gr">'+brl(cas)+'</div>'+
+        '<div class="pe">Em '+mesNome(u.competencia)+', depois de pagar '+nf(u.barras_com_movimento)+
+          ' barras. É a linha que a planilha não tinha.</div></div>'+
+      '<div class="extrato">'+
+        linhaEx("%","pc","Receita AAI",u.receita_aai)+
+        linhaEx("+","ma","Bônus",u.bonus)+
+        linhaEx("−","me","Custo de plataforma",u.custos)+
+        linhaEx("=","ig","Líquido",liq," total")+
+        linhaEx("−","me","Para os parceiros",-par)+
+        linhaEx("=","ig","Fica na casa",cas," final")+
       '</div></div>'+
-    '<div class="panel"><div class="tabela-larga"><table><thead><tr>'+
-      '<th>Mês</th><th class="num">Contratos</th><th class="num">Receita AAI</th><th class="num">Bônus</th>'+
-      '<th class="num">Custos</th><th class="num">Líquido</th><th class="num">Parceiros</th>'+
-      '<th class="num">Fica na casa</th><th class="num">Negativas</th></tr></thead><tbody>'+
+    '<div class="cx sec">'+
+      secTopo(IC.torta,"a","Como o líquido se divide","no último mês fechado",
+        '<span class="chip"><b>'+nf(u.barras_negativas)+'</b> barras negativas</span>')+
+      '<div style="padding:0 24px 20px"><div class="emp">'+
+        '<div style="width:'+pp+'%;background:var(--verde)"><div><div class="p">'+pp+'%</div>'+
+          '<div class="l">PARCEIROS</div></div></div>'+
+        '<div style="width:'+(100-pp)+'%;background:var(--ciano)"><div><div class="p">'+(100-pp)+'%</div>'+
+          '<div class="l">SEJA LIVRE</div></div></div></div>'+
+        '<div class="emp-leg">'+
+          '<div class="it"><i style="background:var(--verde)"></i><div><div class="r">Parceiros</div>'+
+            '<div class="v">'+brl(par)+'</div></div></div>'+
+          '<div class="it"><i style="background:var(--ciano)"></i><div><div class="r">Seja Livre</div>'+
+            '<div class="v">'+brl(cas)+'</div></div></div>'+
+        '</div></div></div>'+
+    '<div class="cx sec">'+
+      secTopo(IC.casa,"","Mês a mês","repasse aos parceiros ao longo do ano")+
+      '<div class="col">'+m.map(x=>'<div class="col-c">'+
+        '<div class="col-v">'+brl(x.a_pagar_parceiros)+'</div>'+
+        '<div class="col-b"><span style="height:'+
+          Math.max(5,Math.round(100*(Number(x.a_pagar_parceiros)||0)/max))+'%"></span></div>'+
+        '<div class="col-m">'+mesCurto(x.competencia)+'</div>'+
+        '<div class="col-d f">'+nf(x.barras_com_movimento)+' barras</div></div>').join("")+'</div>'+
+      '<div class="rola"><table><thead><tr><th>Mês</th><th class="n">Contratos</th>'+
+        '<th class="n">Receita AAI</th><th class="n">Bônus</th><th class="n">Custos</th>'+
+        '<th class="n">Líquido</th><th class="n s">Parceiros</th><th class="n">Fica na casa</th>'+
+        '<th class="n">Negativas</th></tr></thead><tbody>'+
       m.slice().reverse().map(x=>'<tr><td style="font-weight:600">'+mesNome(x.competencia)+'</td>'+
-        '<td class="num">'+nf(x.contratos)+'</td>'+
-        '<td class="num">'+brl0(x.receita_aai)+'</td>'+
-        '<td class="num">'+brl0(x.bonus)+'</td>'+
-        '<td class="num neg">'+brl0(x.custos)+'</td>'+
-        '<td class="num">'+brl0(x.liquido)+'</td>'+
-        '<td class="num">'+brl0(x.a_pagar_parceiros)+'</td>'+
-        '<td class="num pos" style="font-weight:700">'+brl0(x.fica_na_casa)+'</td>'+
-        '<td class="num dim">'+nf(x.barras_negativas)+'</td></tr>').join("")+
-      '</tbody></table></div></div>'+
-    '<div style="font-size:11.5px;color:var(--text-faint);margin-top:12px;line-height:1.6">'+
-      'Mês com receita zerada não aparece: é mês cujo arquivo de produção ainda não foi importado.</div>';
+        '<td class="n">'+nf(x.contratos)+'</td><td class="n">'+brl0(x.receita_aai)+'</td>'+
+        '<td class="n">'+brl0(x.bonus)+'</td><td class="n rubro">'+brl0(x.custos)+'</td>'+
+        '<td class="n d">'+brl0(x.liquido)+'</td>'+
+        '<td class="n s">'+brl0(x.a_pagar_parceiros)+'</td>'+
+        '<td class="n verde" style="font-weight:800">'+brl0(x.fica_na_casa)+'</td>'+
+        '<td class="n f">'+nf(x.barras_negativas)+'</td></tr>').join("")+
+      '</tbody></table></div>'+
+      '<div class="sec-pe" style="cursor:default;font-weight:400;font-size:12px;color:var(--fraco)">'+
+        'Mês com receita zerada não aparece: é mês cujo arquivo de produção ainda não foi importado.</div>'+
+    '</div>';
 }
 
 /* =====================================================================
-   EDIÇÕES — o histórico do que foi mudado à mão
+   EDIÇÕES
    ===================================================================== */
-async function vAjustes(){
+async function vEdicoes(){
   const r=await sb.from("vw_gerencial_ajustes").select("*").limit(300);
-  if(r.error) return erro(r.error);
+  if(r.error) return falha(r.error);
   const l=r.data||[];
   if(!l.length){
-    el("content").innerHTML='<div class="note bom">Nenhum número foi editado à mão. '+
-      'Tudo o que está no fechamento veio direto dos arquivos.</div>';
+    el("alvo").innerHTML='<div class="cx" style="padding:40px;text-align:center">'+
+      '<div style="font-size:16px;font-weight:700;margin-bottom:8px">Nenhum número foi editado à mão</div>'+
+      '<div style="font-size:13px;color:var(--dim)">Tudo o que está no fechamento veio direto dos arquivos.</div></div>';
     return;
   }
-  const ROT={};CAMPOS.forEach(c=>ROT[c[0]]=c[1]);
-  el("content").innerHTML =
-    '<div class="note info">Cada número alterado à mão, com o valor que estava antes. '+
-      'É por aqui que se desfaz um engano — e é o que explica uma diferença quando alguém '+
-      'olhar o mês daqui a seis meses.</div>'+
-    '<div class="panel"><div class="tabela-larga"><table><thead><tr>'+
-      '<th>Quando</th><th>Competência</th><th>Barra</th><th>Campo</th>'+
-      '<th class="num">Estava</th><th class="num">Passou a ser</th><th class="num">Diferença</th>'+
+  const ROT={}; CAMPOS.forEach(c=>ROT[c[0]]=c[1]);
+  el("alvo").innerHTML='<div class="cx sec">'+
+    secTopo(IC.escudo,"a","Edições à mão","cada número alterado, com o valor que estava antes",
+      '<span class="chip"><b>'+nf(l.length)+'</b> alterações</span>')+
+    '<div class="rola"><table><thead><tr><th>Quando</th><th>Competência</th><th>Barra</th>'+
+      '<th>Campo</th><th class="n">Estava</th><th class="n">Passou a ser</th><th class="n">Diferença</th>'+
       '<th>Motivo</th><th>Quem</th></tr></thead><tbody>'+
-      l.map(a=>{
-        const pct = a.campo==="imposto_pct"||a.campo==="pct_parceiro";
-        const f = v => v==null?"—":pct?pctf(v):(a.campo==="contratos"||a.campo==="novos_clientes")?nf(v):brl(v);
-        return '<tr><td class="dim">'+fmtData(a.quando)+'</td>'+
-          '<td class="dim">'+mesCurto(a.competencia)+'</td>'+
-          '<td style="font-weight:600">'+a.barra+'</td>'+
-          '<td>'+(ROT[a.campo]||a.campo)+'</td>'+
-          '<td class="num dim">'+f(a.valor_original)+'</td>'+
-          '<td class="num">'+f(a.valor)+'</td>'+
-          '<td class="num" style="color:'+(Number(a.diferenca)>=0?"var(--green)":"var(--red)")+'">'+
-            (Number(a.diferenca)>0?"+":"")+f(a.diferenca)+'</td>'+
-          '<td class="dim" style="white-space:normal;max-width:260px">'+(a.motivo||"—")+'</td>'+
-          '<td class="dim">'+(a.quem||"—")+'</td></tr>';
-      }).join("")+'</tbody></table></div></div>';
+    l.map(a=>{
+      const p=a.campo==="imposto_pct"||a.campo==="pct_parceiro";
+      const f=v=>v==null?"—":p?pct(v):(a.campo==="contratos"||a.campo==="novos_clientes")?nf(v):brl(v);
+      return '<tr><td class="f">'+fmtData(a.quando)+'</td><td class="f">'+mesCurto(a.competencia)+'</td>'+
+        '<td style="font-weight:600">'+a.barra+'</td><td class="d">'+(ROT[a.campo]||a.campo)+'</td>'+
+        '<td class="n f">'+f(a.valor_original)+'</td><td class="n">'+f(a.valor)+'</td>'+
+        '<td class="n" style="color:'+(Number(a.diferenca)>=0?"var(--verde)":"var(--vermelho)")+'">'+
+          (Number(a.diferenca)>0?"+":"")+f(a.diferenca)+'</td>'+
+        '<td class="d" style="white-space:normal;max-width:250px">'+(a.motivo||"—")+'</td>'+
+        '<td class="f">'+(a.quem||"—")+'</td></tr>';
+    }).join("")+'</tbody></table></div></div>';
 }
 
 /* =====================================================================
-   IMPORTAR — o arquivo de produção da Genial
-   Três descartes na leitura: custo de plataforma (vem do CRM), incentivo
-   agregado (entra pelos pontos) e as barras marcadas como fora.
+   IMPORTAR
    ===================================================================== */
-const chaveBarra = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+const chaveBarra=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
   .toUpperCase().replace(/[^A-Z0-9]/g,"");
 function consertaTexto(s){
   if(typeof s!=="string"||!/[\u00C3\u00C2][\u0080-\u00BF]/.test(s)) return s;
@@ -871,97 +969,94 @@ const DESCARTAR=["incentivo - faixas traders","produção do fernando barbosa ap
 let PRONTO=null;
 
 function vImportar(){
-  el("content").innerHTML =
-    '<div class="note info">O gerencial precisa de <b>um upload por mês</b>: o arquivo de produção '+
-      'da Genial. Custo de plataforma continua vindo do CRM, contratos vêm do Volume Operado e '+
+  el("alvo").innerHTML =
+    '<div class="aviso c">O gerencial precisa de <b>um upload por mês</b>: o arquivo de produção da '+
+      'Genial. O custo de plataforma continua vindo do CRM, os contratos vêm do Volume Operado e os '+
       'novos clientes vêm do cadastro.</div>'+
-    '<div class="solta" id="solta"><strong>Solte o arquivo de produção aqui</strong>'+
-      '<span>SEJA_LIVRE_PRODUCAO_&lt;mês&gt;.xlsx — ou clique para escolher</span></div>'+
-    '<input type="file" id="arq" accept=".xlsx,.xls" hidden>'+
-    '<div style="font-size:12.5px;color:var(--text-dim);margin-bottom:16px">'+
-      'A competência é <b>'+mesNome(COMP)+'</b>, escolhida no alto da tela — não é lida do arquivo. '+
-      'Foi lendo do arquivo que a carga de Akeloo entrou com a data do upload.</div>'+
-    '<div id="leitura"></div>';
+    '<div class="cx sec">'+
+      secTopo(IC.subir,"v","Arquivo de produção","SEJA_LIVRE_PRODUCAO_&lt;mês&gt;.xlsx",
+        '<span class="chip">competência: <b>'+mesNome(COMP)+'</b></span>')+
+      '<div class="solta" id="solta"><strong>Solte o arquivo aqui</strong>'+
+        '<span>ou clique para escolher</span></div>'+
+      '<input type="file" id="arq" accept=".xlsx,.xls" hidden>'+
+      '<div style="padding:0 24px 20px;font-size:12.5px;color:var(--fraco);line-height:1.65">'+
+        'A competência é a do alto da tela e <b>não é lida do arquivo</b> — foi lendo do arquivo que '+
+        'a carga de Akeloo entrou com a data do upload.</div>'+
+      '<div id="leitura"></div></div>';
   const d=el("solta"), i=el("arq");
   d.onclick=()=>i.click();
-  d.ondragover=e=>{e.preventDefault();d.classList.add("sobre");};
-  d.ondragleave=()=>d.classList.remove("sobre");
-  d.ondrop=e=>{e.preventDefault();d.classList.remove("sobre");
+  d.ondragover=e=>{e.preventDefault();d.classList.add("sob");};
+  d.ondragleave=()=>d.classList.remove("sob");
+  d.ondrop=e=>{e.preventDefault();d.classList.remove("sob");
     if(e.dataTransfer.files[0]) ler(e.dataTransfer.files[0]);};
   i.onchange=()=>{ if(i.files[0]) ler(i.files[0]); };
 }
 
 async function ler(file){
-  const alvo=el("leitura");
-  alvo.innerHTML='<div class="loading"><div class="spinner"></div>Lendo '+file.name+'…</div>';
+  const a=el("leitura");
+  a.innerHTML='<div class="carreg"><div class="giro"></div>Lendo '+file.name+'…</div>';
   let wb; try{ wb=XLSX.read(await file.arrayBuffer(),{cellDates:true}); }
-  catch(e){ return alvo.innerHTML='<div class="note ruim">Não consegui abrir: '+e.message+'</div>'; }
-  const abaData=wb.SheetNames.find(n=>n.toLowerCase()==="data");
-  const abaFx=wb.SheetNames.find(n=>n.toUpperCase().indexOf("FAIXAS")>=0);
-  if(!abaData||!abaFx){
-    return alvo.innerHTML='<div class="note ruim">Este não é o arquivo de produção. '+
-      'Esperava as abas <b>Data</b> e <b>FAIXAS_TRADER</b>; encontrei: '+wb.SheetNames.join(", ")+'.</div>';
-  }
-  const linhas=XLSX.utils.sheet_to_json(wb.Sheets[abaData],{range:1,defval:null});
-  const receitas=[], fora={custo:0,incentivo:0,ajuste:0,barra:0,semBarra:0}; let foraValor=0;
-  for(const l of linhas){
+  catch(e){ return a.innerHTML='<div class="aviso r" style="margin:0 24px 20px">Não consegui abrir: '+e.message+'</div>'; }
+  const ad=wb.SheetNames.find(n=>n.toLowerCase()==="data");
+  const af=wb.SheetNames.find(n=>n.toUpperCase().indexOf("FAIXAS")>=0);
+  if(!ad||!af) return a.innerHTML='<div class="aviso r" style="margin:0 24px 20px">'+
+    'Este não é o arquivo de produção. Esperava as abas <b>Data</b> e <b>FAIXAS_TRADER</b>; '+
+    'encontrei: '+wb.SheetNames.join(", ")+'.</div>';
+
+  const receitas=[], fora={custo:0,inc:0,aj:0,barra:0,sem:0}; let foraV=0;
+  for(const l of XLSX.utils.sheet_to_json(wb.Sheets[ad],{range:1,defval:null})){
     const tipo=txt(l["TIPO PRODUTO"])||"", desc=(txt(l["DESCRICAO"])||"").toLowerCase();
     if(tipo==="Custo de Plataforma"){ fora.custo++; continue; }
-    if(desc===DESCARTAR[0]){ fora.incentivo++; continue; }
-    if(desc===DESCARTAR[1]){ fora.ajuste++; continue; }
-    if(FORA.has(chaveBarra(l["ASSESSOR"]))){ fora.barra++; foraValor+=num(l["COMISSÃO ASSESSOR"])||0; continue; }
-    const barra=txt(l["ASSESSOR"]); if(!barra) fora.semBarra++;
-    receitas.push({barra:barra||"(sem barra)", cod_assessor:txt(l["COD SINACOR ASSESSOR"]),
-      tipo_produto:tipo||null, produto:txt(l["PRODUTO"]),
-      sinacor_cliente:txt(l["COD SINACOR CLIENTE"]), cpf_cnpj:txt(l["CPF/CNPJ"]),
-      cliente:txt(l["CLIENTE"]), data_receita:dataISO(l["DATA DE RECEITA"]),
-      receita_genial:num(l["RECEITA GENIAL (*)"]), repasse_aai:txt(l["REPASSE AAI"]),
-      repasse_assessor:txt(l["REPASSE ASSESSOR"]), valor_bruto_aai:num(l["VALOR BRUTO AAI"]),
-      imposto:num(l["IMPOSTO"]), valor_liquido_aai:num(l["VALOR LIQUIDO AAI"]),
-      comissao_assessor:num(l["COMISSÃO ASSESSOR"])||0, descricao:txt(l["DESCRICAO"])});
+    if(desc===DESCARTAR[0]){ fora.inc++; continue; }
+    if(desc===DESCARTAR[1]){ fora.aj++; continue; }
+    if(FORA.has(chaveBarra(l["ASSESSOR"]))){ fora.barra++; foraV+=num(l["COMISSÃO ASSESSOR"])||0; continue; }
+    const b=txt(l["ASSESSOR"]); if(!b) fora.sem++;
+    receitas.push({barra:b||"(sem barra)",cod_assessor:txt(l["COD SINACOR ASSESSOR"]),
+      tipo_produto:tipo||null,produto:txt(l["PRODUTO"]),
+      sinacor_cliente:txt(l["COD SINACOR CLIENTE"]),cpf_cnpj:txt(l["CPF/CNPJ"]),
+      cliente:txt(l["CLIENTE"]),data_receita:dataISO(l["DATA DE RECEITA"]),
+      receita_genial:num(l["RECEITA GENIAL (*)"]),repasse_aai:txt(l["REPASSE AAI"]),
+      repasse_assessor:txt(l["REPASSE ASSESSOR"]),valor_bruto_aai:num(l["VALOR BRUTO AAI"]),
+      imposto:num(l["IMPOSTO"]),valor_liquido_aai:num(l["VALOR LIQUIDO AAI"]),
+      comissao_assessor:num(l["COMISSÃO ASSESSOR"])||0,descricao:txt(l["DESCRICAO"])});
   }
   const bonus=[];
-  for(const l of XLSX.utils.sheet_to_json(wb.Sheets[abaFx],{range:1,defval:null})){
-    const nome=txt(l["CLIENTE"]), inc=num(l["INCENTIVO"])||0;
-    if(nome&&inc>0) bonus.push({cliente:nome,pontos:num(l["QTDE PONTOS"]),incentivo:inc});
+  for(const l of XLSX.utils.sheet_to_json(wb.Sheets[af],{range:1,defval:null})){
+    const n=txt(l["CLIENTE"]), i=num(l["INCENTIVO"])||0;
+    if(n&&i>0) bonus.push({cliente:n,pontos:num(l["QTDE PONTOS"]),incentivo:i});
   }
   PRONTO={receitas,bonus};
-  const sr=receitas.reduce((a,x)=>a+(x.comissao_assessor||0),0);
-  const sbn=bonus.reduce((a,x)=>a+x.incentivo,0);
+  const sr=receitas.reduce((s,x)=>s+(x.comissao_assessor||0),0);
+  const sn=bonus.reduce((s,x)=>s+x.incentivo,0);
 
-  alvo.innerHTML =
-    '<div class="panel"><div class="toolbar"><b style="font-size:14px">'+file.name+'</b>'+
-      '<span class="tag t-green" style="margin-left:auto">produção da Genial</span></div>'+
-      '<table><tbody>'+
-        '<tr><td>Receita AAI</td><td class="num dim">'+nf(receitas.length)+' linhas</td>'+
-          '<td class="num" style="font-weight:700">'+brl(sr)+'</td></tr>'+
-        '<tr><td>Bônus dos pontos</td><td class="num dim">'+nf(bonus.length)+' clientes</td>'+
-          '<td class="num" style="font-weight:700">'+brl(sbn)+'</td></tr>'+
-      '</tbody></table>'+
-      '<div style="padding:14px 16px;font-size:12.5px;color:var(--text-dim);line-height:1.65">'+
-        'Fora da conta: '+nf(fora.custo)+' linhas de custo de plataforma (vêm do CRM), '+
-        fora.incentivo+' do incentivo agregado (entra pelos pontos)'+
-        (fora.barra?', e '+nf(fora.barra)+' linhas de barra excluída ('+brl(foraValor)+
-          ', mais '+fora.ajuste+' de ajuste)':' e '+fora.ajuste+' de ajuste')+'.'+
-        (fora.semBarra?' '+nf(fora.semBarra)+' linha(s) vieram sem assessor e entram como '+
-          '<b>(sem barra)</b>, para o valor não sumir.':'')+
-      '</div>'+
-      '<div class="toolbar" style="border-top:1px solid var(--border);border-bottom:none">'+
-        (PAPEL==="leitor"
-          ? '<span style="font-size:12.5px;color:var(--amber)">Seu acesso é de leitura — peça a um operador para importar.</span>'
-          : '<button class="cfg-save" id="btImp" onclick="enviar()">Importar em '+mesNome(COMP)+'</button>'+
-            '<button class="btn-rd" onclick="el(\'leitura\').innerHTML=\'\';PRONTO=null">Cancelar</button>')+
-      '</div>'+
-      '<div class="progresso hidden" id="barra"><div></div></div><div id="passo"></div>'+
-    '</div>';
+  a.innerHTML =
+    '<div class="faixa-num">'+
+      '<div><div class="rot">Receita AAI</div><div class="vl verde">'+brl(sr)+'</div>'+
+        '<div style="font-size:11.5px;color:var(--fraco);margin-top:3px">'+nf(receitas.length)+' linhas</div></div>'+
+      '<div><div class="rot">Bônus dos pontos</div><div class="vl verde">'+brl(sn)+'</div>'+
+        '<div style="font-size:11.5px;color:var(--fraco);margin-top:3px">'+nf(bonus.length)+' clientes</div></div>'+
+    '</div>'+
+    '<div style="padding:0 24px 18px;font-size:12.5px;color:var(--dim);line-height:1.7">'+
+      '<b>'+file.name+'</b><br>Fora da conta: '+nf(fora.custo)+' linhas de custo de plataforma (vêm do CRM), '+
+      fora.inc+' do incentivo agregado (entra pelos pontos)'+
+      (fora.barra?', e '+nf(fora.barra)+' linhas de barra excluída ('+brl(foraV)+', mais '+fora.aj+' de ajuste)'
+                 :' e '+fora.aj+' de ajuste')+'.'+
+      (fora.sem?' '+nf(fora.sem)+' linha(s) vieram sem assessor e entram como <b>(sem barra)</b>, '+
+        'para o valor não sumir.':'')+'</div>'+
+    '<div class="barra-ctrl">'+(PAPEL==="leitor"
+      ? '<span style="font-size:12.5px;color:var(--ambar)">Seu acesso é de leitura — peça a um operador para importar.</span>'
+      : '<button class="bt-f" id="btImp" onclick="enviar()">Importar em '+mesNome(COMP)+'</button>'+
+        '<button class="bt" onclick="el(\'leitura\').innerHTML=\'\';PRONTO=null">Cancelar</button>')+'</div>'+
+    '<div class="prog" id="barraProg" style="display:none"><div></div></div><div id="passo"></div>';
 }
 
 async function enviar(){
   if(!PRONTO) return;
-  const bt=el("btImp"), passo=el("passo"), barra=el("barra"), pre=barra.firstElementChild;
-  bt.disabled=true; barra.classList.remove("hidden");
+  const bt=el("btImp"), passo=el("passo"), bar=el("barraProg"), pre=bar.firstElementChild;
+  bt.disabled=true; bar.style.display="block";
+  const nota=(t,c)=>'<div class="aviso'+(c?" "+c:"")+'" style="margin:0 24px 16px">'+t+'</div>';
   try{
-    passo.innerHTML='<div class="note">Abrindo lote…</div>';
+    passo.innerHTML=nota("Abrindo lote…");
     const a=await sb.rpc("abrir_lote",{p_competencia:COMP,p_origem:"receitas"});
     if(a.error) throw a.error;
     const TAM=1500, tot=PRONTO.receitas.length;
@@ -969,34 +1064,29 @@ async function enviar(){
       const e=await sb.rpc("enviar_lote",{p_lote_id:a.data,p_linhas:PRONTO.receitas.slice(i,i+TAM)});
       if(e.error) throw e.error;
       const f=Math.min(i+TAM,tot); pre.style.width=(f/tot*100)+"%";
-      passo.innerHTML='<div class="note">Receita — '+nf(f)+' de '+nf(tot)+'.</div>';
+      passo.innerHTML=nota("Receita — "+nf(f)+" de "+nf(tot)+".");
     }
-    passo.innerHTML='<div class="note">Ativando o mês…</div>';
+    passo.innerHTML=nota("Ativando o mês…");
     const at=await sb.rpc("ativar_lote",{p_lote_id:a.data}); if(at.error) throw at.error;
-    passo.innerHTML='<div class="note">Bônus — buscando a barra de cada cliente…</div>';
+    passo.innerHTML=nota("Bônus — buscando a barra de cada cliente…");
     const rb=await sb.rpc("importar_bonus",{p_competencia:COMP,p_linhas:PRONTO.bonus});
     if(rb.error) throw rb.error;
     const t=(await sb.rpc("gerencial_totais",{p_competencia:COMP})).data;
     pre.style.width="100%";
     passo.innerHTML =
-      '<div class="note bom"><b>Importado.</b> '+nf(at.data.linhas)+' linhas de receita e '+
-        nf(rb.data.linhas)+' de bônus.</div>'+
-      (rb.data.sem_barra?'<div class="note">'+nf(rb.data.sem_barra)+' clientes do bônus ficaram '+
-        'sem barra: o nome não bateu com o cadastro. Não entram em barra nenhuma até serem resolvidos.</div>':'')+
-      ((!t||Number(t.custos)===0)?'<div class="note ruim"><b>Sem custo de plataforma neste mês.</b> '+
-        'O valor a pagar está inflado. Suba o arquivo de custos pelo CRM antes de pagar.</div>':'')+
-      (t?'<div class="toolbar" style="border-bottom:none"><button class="cfg-save" '+
-        'onclick="irPara(\'resumo\')">Ver o fechamento de '+mesNome(COMP)+'</button></div>':'');
-    toast("Importado", mesNome(COMP));
+      nota("<b>Importado.</b> "+nf(at.data.linhas)+" linhas de receita e "+nf(rb.data.linhas)+" de bônus.","v")+
+      (rb.data.sem_barra?nota(nf(rb.data.sem_barra)+" clientes do bônus ficaram sem barra: o nome não "+
+        "bateu com o cadastro. Não entram em barra nenhuma até serem resolvidos.","a"):"")+
+      ((!t||Number(t.custos)===0)?nota("<b>Sem custo de plataforma neste mês.</b> O valor a pagar "+
+        "está inflado. Suba o arquivo de custos pelo CRM antes de pagar.","r"):"")+
+      '<div class="barra-ctrl"><button class="bt-f" onclick="ir(\'resumo\')">Ver o fechamento de '+
+        mesNome(COMP)+'</button></div>';
+    tor("Importado",mesNome(COMP));
   }catch(err){
-    passo.innerHTML='<div class="note ruim"><b>Não importou.</b> '+(err.message||err)+
-      '<br>Nada foi ativado — o mês anterior continua valendo.</div>';
+    passo.innerHTML=nota("<b>Não importou.</b> "+(err.message||err)+
+      "<br>Nada foi ativado — o mês anterior continua valendo.","r");
     bt.disabled=false;
   }
-}
-function irPara(v){
-  document.querySelectorAll(".nav-item").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
-  render(v);
 }
 </script>
 </body>
