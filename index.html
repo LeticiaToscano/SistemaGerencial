@@ -102,7 +102,7 @@ footer{margin-top:52px;padding-top:14px;border-top:1px solid var(--linha);
 
 <script>
 const URL_SB = 'https://hdgacffmwigdscrtctia.supabase.co';
-const CHAVE  = 'sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a';  // <<< só isto falta
+const CHAVE  = 'COLE_AQUI_A_PUBLISHABLE_KEY';  // <<< só isto falta
 const VERSAO = 'v02/09 22:30';
 
 const sb = supabase.createClient(URL_SB, CHAVE);
@@ -138,6 +138,10 @@ function dataISO(v){
   if(m) return m[3]+'-'+m[2]+'-'+m[1];
   return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0,10) : null;
 }
+const chaveBarra = s => (consertaTexto(String(s||''))
+  .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+  .toUpperCase().replace(/[^A-Z0-9]/g,''));
+
 const dataBR = v => { const i=dataISO(v);
   return i ? i.slice(8,10)+'/'+i.slice(5,7)+'/'+i.slice(0,4) : null; };
 
@@ -163,6 +167,8 @@ async function abrir(){
   $('#login').classList.add('esconde'); $('#app').classList.remove('esconde');
   $('#quem').innerHTML = user.email+' · '+p.data+' <button class="discreto" id="btSair">Sair</button>';
   $('#btSair').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+  const f = await sb.from('vw_barras_fora_gerencial').select('barra');
+  FORA = new Set((f.data||[]).map(x => chaveBarra(x.barra)));
 }
 sb.auth.getSession().then(r => { if(r.data.session) abrir(); });
 
@@ -197,6 +203,7 @@ function classificar(abas, colunas){
 }
 
 const pendentes = [];
+let FORA = new Set();
 const marcar = (cartao, t) => cartao.querySelector('h2 em').textContent = t;
 const corpo  = cartao => cartao.querySelector('.corpo');
 const falhar = (cartao, msg) => { marcar(cartao,'não entrou');
@@ -256,13 +263,16 @@ const DESCARTAR = ['incentivo - faixas traders',
 function verProducao(file, wb, abas, cartao){
   const abaData = abas.find(a => a.toLowerCase()==='data');
   const abaFx   = abas.find(a => a.toUpperCase().indexOf('FAIXAS') >= 0);
-  const receitas = [], fora = {custo:0, incentivo:0, fernando:0};
+  const receitas = [], fora = {custo:0, incentivo:0, fernando:0, barra:0};
+  let foraValor = 0;
   for(const l of linhasDe(wb, abaData, 1)){
     const tipo = txt(l['TIPO PRODUTO']) || '';
     const desc = (txt(l['DESCRICAO'])||'').toLowerCase();
     if(tipo === 'Custo de Plataforma'){ fora.custo++; continue; }
     if(desc === DESCARTAR[0]){ fora.incentivo++; continue; }
     if(desc === DESCARTAR[1]){ fora.fernando++; continue; }
+    if(FORA.has(chaveBarra(l['ASSESSOR']))){
+      fora.barra++; foraValor += num(l['COMISSÃO ASSESSOR'])||0; continue; }
     receitas.push({
       barra: txt(l['ASSESSOR']), cod_assessor: txt(l['COD SINACOR ASSESSOR']),
       tipo_produto: tipo||null, produto: txt(l['PRODUTO']),
@@ -294,12 +304,16 @@ function verProducao(file, wb, abas, cartao){
     '</table>'+
     '<p style="color:var(--grafite);font-size:13.5px;margin:14px 0 0">Fora da conta: '+
       int(fora.custo)+' linhas de custo de plataforma (vêm do arquivo de custos), '+
-      fora.incentivo+' do incentivo agregado (entra pelos pontos) e '+
-      fora.fernando+' do ajuste do Fernando Barbosa (barra fora do gerencial).</p>'+
-    '<div class="acoes"><button>Importar em '+$('#mes').value+'</button></div>'+
+      fora.incentivo+' do incentivo agregado (entra pelos pontos)'+
+      (fora.barra ? ', e '+int(fora.barra)+' linhas de barra excluída do gerencial ('+
+        brl(foraValor)+', mais '+fora.fernando+' de ajuste)' :
+        ' e '+fora.fernando+' de ajuste')+'.</p>'+
+    '<div class="acoes"><button>Importar em <span class="mesbt"></span></button></div>'+
     '<div class="progresso esconde"><div></div></div><div class="passo"></div>';
-  cartao.querySelector('button').onclick = e =>
-    enviarProducao(e.target, cartao, receitas, bonus);
+  const bt = cartao.querySelector('.acoes button');
+  const rotulo = () => { const s = bt.querySelector('.mesbt'); if(s) s.textContent = $('#mes').value; };
+  rotulo(); $('#mes').addEventListener('change', rotulo);
+  bt.onclick = () => enviarProducao(bt, cartao, receitas, bonus);
 }
 
 async function enviarProducao(bt, cartao, receitas, bonus){
