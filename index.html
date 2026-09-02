@@ -260,6 +260,12 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
 
 /* seletor próprio: o <select> do navegador abre uma lista branca com a
    fonte do sistema, que não obedece estilo nenhum */
+/* O cartão tem overflow:hidden para arredondar o conteúdo, e isso
+   recortava a lista do seletor na borda. A linha que contém um seletor
+   deixa de recortar — e ganha z-index, senão a lista some atrás da
+   seção seguinte. */
+.barra-ctrl{overflow:visible;position:relative;z-index:20}
+.cx.sec:has(.esc-cx),.cx.sec.aberta{overflow:visible}
 .esc-cx{position:relative;flex:0 0 300px}
 .esc-bt{width:100%;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);
   border:1px solid var(--linha2);border-radius:10px;padding:9px 13px;color:var(--txt);
@@ -267,7 +273,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
 .esc-bt:hover{border-color:rgba(46,229,157,.35)}
 .esc-bt .tx{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .esc-bt .se{color:var(--fraco);font-size:11px}
-.esc-lista{position:absolute;top:calc(100% + 7px);left:0;right:0;z-index:30;
+.esc-lista{position:absolute;top:calc(100% + 7px);left:0;right:0;z-index:60;
   background:var(--carta2);border:1px solid var(--linha2);border-radius:14px;overflow:hidden;
   box-shadow:0 26px 60px -18px rgba(0,0,0,.85);display:none}
 .esc-lista.on{display:block}
@@ -294,31 +300,37 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
 .prog{height:4px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;margin:0 24px 16px}
 .prog div{height:100%;background:var(--verde);width:0;transition:width .25s}
 
-/* Gráfico com linha de base no zero: negativo desce, positivo sobe.
-   Antes, todas as colunas partiam do chão e um prejuízo grande parecia
-   um mês bom. A entrada é animada uma vez, quando o dado chega. */
-.graf{padding:10px 24px 24px}
-.graf-cx{display:flex;gap:12px;align-items:stretch;position:relative}
-.graf-zero{position:absolute;left:0;right:0;border-top:1px dashed rgba(255,255,255,.14);
-  pointer-events:none}
-.graf-zero span{position:absolute;right:0;top:-8px;font-size:9.5px;color:var(--fraco);
-  background:var(--carta2);padding:0 6px;letter-spacing:1px}
-.gc{flex:1;display:flex;flex-direction:column;min-width:0}
-.gc-cima,.gc-baixo{display:flex;flex-direction:column;justify-content:flex-end}
-.gc-baixo{justify-content:flex-start}
-.gc-v{font-size:11.5px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;
-  white-space:nowrap;opacity:0;animation:gv .4s ease forwards}
-.gc-b{width:100%;border-radius:7px 7px 0 0;transform:scaleY(0);transform-origin:bottom;
-  animation:gs .65s cubic-bezier(.2,.8,.3,1) forwards;
-  background:linear-gradient(180deg,var(--verde),rgba(46,229,157,.18))}
-.gc-b.neg{border-radius:0 0 7px 7px;transform-origin:top;
-  background:linear-gradient(0deg,var(--vermelho),rgba(255,92,106,.18))}
-.gc-b:hover{filter:brightness(1.25)}
-@keyframes gs{to{transform:scaleY(1)}}
-@keyframes gv{to{opacity:1}}
-.gc-m{font-size:11px;margin-top:11px;color:var(--dim);text-align:center}
-.gc-d{font-size:11.5px;font-weight:700;margin-top:3px;text-align:center}
-@media(prefers-reduced-motion:reduce){.gc-b{transform:none!important}.gc-v{opacity:1!important}}
+/* ---------------------------------------------------------------------
+   Gráfico de linha com área. Bloco grande não é gráfico: com dois meses
+   viravam duas lajes e a leitura sumia. Aqui a forma é a curva, o zero é
+   um eixo de verdade, e a linha se desenha ao entrar — uma vez só.
+   --------------------------------------------------------------------- */
+.gr{position:relative;padding:16px 24px 6px}
+.gr-tela{position:relative;width:100%}
+.gr-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.gr-grade{stroke:rgba(255,255,255,.05);stroke-width:1}
+.gr-zero{stroke:rgba(255,255,255,.22);stroke-width:1;stroke-dasharray:4 4}
+.gr-area{opacity:0;animation:grA .8s ease .35s forwards}
+.gr-linha{fill:none;stroke-width:2.5;vector-effect:non-scaling-stroke;stroke-linecap:round;
+  stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:grL 1.1s cubic-bezier(.4,.1,.3,1) forwards}
+@keyframes grA{to{opacity:1}}
+@keyframes grL{to{stroke-dashoffset:0}}
+.gr-pt{opacity:0;animation:grP .35s ease forwards}
+@keyframes grP{to{opacity:1}}
+.gr-rot{position:absolute;transform:translate(-50%,-50%);font-size:11.5px;font-weight:700;
+  white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:none;
+  opacity:0;animation:grP .4s ease forwards}
+.gr-eixo{display:flex;margin-top:10px}
+.gr-eixo>div{flex:1;text-align:center;min-width:0}
+.gr-mes{font-size:11px;color:var(--dim)}
+.gr-var{font-size:11.5px;font-weight:700;margin-top:3px}
+.gr-zrot{position:absolute;right:24px;font-size:9px;color:var(--fraco);letter-spacing:1.4px;
+  transform:translateY(-50%);background:var(--carta2);padding:0 6px}
+.gr-fantasma{position:absolute;top:0;bottom:0;cursor:default}
+.gr-fantasma:hover{background:rgba(255,255,255,.025)}
+@media(prefers-reduced-motion:reduce){
+  .gr-area,.gr-pt,.gr-rot{opacity:1!important;animation:none!important}
+  .gr-linha{stroke-dashoffset:0!important;animation:none!important}}
 
 @media(max-width:980px){
   .duo,.heroi{grid-template-columns:1fr}
@@ -624,7 +636,7 @@ function pintarResumo(){
 
 function secBarras(){
   const l=filtradas();
-  return '<div class="cx sec">'+
+  return '<div class="cx sec aberta">'+
     secTopo(IC.lista,"","Todas as barras","o fechamento linha a linha",
       '<span class="chip">valores em <b>R$</b></span>'+
       '<span class="chip"><b>'+nf(LINHAS.length)+'</b> barras</span>'+
@@ -908,34 +920,101 @@ async function pagar(barra,valor,situacao){
    as duas metades ficam comparáveis entre si.
    --------------------------------------------------------------------- */
 function grafico(pontos, alt){
-  alt = alt || 190;
-  const vals = pontos.map(p=>Number(p.valor)||0);
-  const max = Math.max(1, ...vals.map(Math.abs));
-  const temNeg = vals.some(v=>v<0);
-  const hCima = temNeg ? Math.round(alt*0.62) : alt;
-  const hBaixo = temNeg ? alt-hCima : 0;
-  const alturaCima = Math.max(...vals.map(v=>v>0?v:0)) || max;
-  const alturaBaixo = Math.max(...vals.map(v=>v<0?-v:0)) || max;
+  alt = alt || 210;
+  const n = pontos.length;
+  if(!n) return '<div class="vazio">Sem dados no período.</div>';
 
-  return '<div class="graf"><div class="graf-cx">'+
-    '<div class="graf-zero" style="top:'+hCima+'px"><span>ZERO</span></div>'+
-    pontos.map(function(p,i){
-      const v=Number(p.valor)||0, neg=v<0, atraso=(i*0.07).toFixed(2)+'s';
-      const h = neg ? Math.max(4,Math.round(hBaixo*(-v)/alturaBaixo))
-                    : Math.max(4,Math.round(hCima*v/alturaCima));
-      return '<div class="gc" title="'+(p.dica||"")+'">'+
-        '<div class="gc-cima" style="height:'+hCima+'px">'+
-          (neg?'':'<div class="gc-v" style="animation-delay:'+atraso+'">'+p.rotulo+'</div>'+
-               '<div class="gc-b" style="height:'+h+'px;animation-delay:'+atraso+'"></div>')+
-        '</div>'+
-        (temNeg?'<div class="gc-baixo" style="height:'+hBaixo+'px">'+
-          (neg?'<div class="gc-b neg" style="height:'+h+'px;animation-delay:'+atraso+'"></div>'+
-               '<div class="gc-v" style="animation-delay:'+atraso+';color:var(--vermelho)">'+p.rotulo+'</div>':'')+
-        '</div>':'')+
-        '<div class="gc-m">'+p.mes+'</div>'+
-        (p.sub!=null?'<div class="gc-d" style="color:'+(p.cor||"var(--fraco)")+'">'+p.sub+'</div>':'')+
-      '</div>';
-    }).join("")+'</div></div>';
+  const v = pontos.map(p=>Number(p.valor)||0);
+  let max = Math.max(...v), min = Math.min(...v);
+  if(max === min){ max = max || 1; min = Math.min(0, max - Math.abs(max)); }
+  /* uma folga em cima e embaixo, para o rótulo não encostar na borda */
+  const folga = (max - min) * 0.18;
+  max += folga; min -= folga;
+  if(min > 0) min = 0;            // se tudo é positivo, o zero é o chão
+  if(max < 0) max = 0;            // se tudo é negativo, o zero é o teto
+
+  const W = 1000, H = alt;
+  const px = i => n === 1 ? W/2 : (i/(n-1))*W;
+  const py = y => H - ((y - min)/(max - min))*H;
+  const yZero = py(0);
+  const temNeg = v.some(x=>x<0);
+
+  const pts = v.map((y,i)=>[px(i), py(y)]);
+
+  /* curva suave: cada trecho usa uma cúbica com controles horizontais.
+     Reta em zigue-zague deixa o gráfico duro; curva demais mente sobre
+     o que houve entre um mês e outro — meio termo em 0.4 do vão. */
+  let linha = "M"+pts[0][0].toFixed(1)+","+pts[0][1].toFixed(1);
+  for(let i=1;i<n;i++){
+    const [x0,y0]=pts[i-1], [x1,y1]=pts[i], dx=(x1-x0)*0.4;
+    linha += " C"+(x0+dx).toFixed(1)+","+y0.toFixed(1)+" "+
+                  (x1-dx).toFixed(1)+","+y1.toFixed(1)+" "+
+                   x1.toFixed(1)+","+y1.toFixed(1);
+  }
+  const area = linha+" L"+pts[n-1][0].toFixed(1)+","+yZero.toFixed(1)+
+                    " L"+pts[0][0].toFixed(1)+","+yZero.toFixed(1)+" Z";
+
+  const id = "g"+Math.random().toString(36).slice(2,8);
+  const grade = [0.25,0.5,0.75].map(f=>'<line class="gr-grade" x1="0" x2="'+W+'" y1="'+
+    (H*f).toFixed(1)+'" y2="'+(H*f).toFixed(1)+'"/>').join("");
+
+  const pontinhos = pts.map(function(p,i){
+    const neg = v[i] < 0;
+    return '<circle class="gr-pt" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="4.5" '+
+      'fill="'+(neg?"var(--vermelho)":"var(--verde)")+'" stroke="var(--carta2)" stroke-width="2.5" '+
+      'style="animation-delay:'+(0.55+i*0.08).toFixed(2)+'s"/>';
+  }).join("");
+
+  /* os rótulos são HTML por cima do SVG: texto dentro de viewBox esticado
+     sai deformado */
+  const rotulos = pts.map(function(p,i){
+    const neg = v[i] < 0;
+    const cima = !neg;
+    return '<div class="gr-rot" style="left:'+(p[0]/W*100).toFixed(2)+'%;'+
+      'top:'+((p[1] + (cima?-20:20))/H*100).toFixed(2)+'%;'+
+      'color:'+(neg?"var(--vermelho)":"var(--txt)")+';'+
+      'animation-delay:'+(0.6+i*0.08).toFixed(2)+'s">'+pontos[i].rotulo+'</div>';
+  }).join("");
+
+  const areas = pontos.map(function(p,i){
+    const l = n===1 ? 0 : (i===0?0:(px(i)+px(i-1))/2/W*100);
+    const r = n===1 ? 100 : (i===n-1?100:(px(i)+px(i+1))/2/W*100);
+    return '<div class="gr-fantasma" title="'+(p.dica||"")+'" style="left:'+l.toFixed(2)+'%;'+
+      'width:'+(r-l).toFixed(2)+'%"></div>';
+  }).join("");
+
+  return '<div class="gr">'+
+    '<div class="gr-tela" style="height:'+H+'px">'+
+      '<svg class="gr-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+
+        '<defs>'+
+          '<linearGradient id="'+id+'p" x1="0" y1="0" x2="0" y2="1">'+
+            '<stop offset="0%" stop-color="rgba(46,229,157,.42)"/>'+
+            '<stop offset="100%" stop-color="rgba(46,229,157,0)"/></linearGradient>'+
+          '<linearGradient id="'+id+'l" x1="0" y1="0" x2="1" y2="0">'+
+            '<stop offset="0%" stop-color="'+(v[0]<0?"var(--vermelho)":"var(--verde)")+'"/>'+
+            '<stop offset="100%" stop-color="'+(v[n-1]<0?"var(--vermelho)":"var(--verde)")+'"/>'+
+          '</linearGradient>'+
+          '<clipPath id="'+id+'c"><rect x="0" y="0" width="'+W+'" height="'+yZero.toFixed(1)+'"/></clipPath>'+
+          '<clipPath id="'+id+'d"><rect x="0" y="'+yZero.toFixed(1)+'" width="'+W+'" '+
+            'height="'+(H-yZero).toFixed(1)+'"/></clipPath>'+
+        '</defs>'+
+        grade+
+        '<path class="gr-area" d="'+area+'" fill="url(#'+id+'p)" clip-path="url(#'+id+'c)"/>'+
+        (temNeg?'<path class="gr-area" d="'+area+'" fill="rgba(255,92,106,.30)" '+
+          'clip-path="url(#'+id+'d)"/>':'')+
+        '<line class="gr-zero" x1="0" x2="'+W+'" y1="'+yZero.toFixed(1)+'" y2="'+yZero.toFixed(1)+'"/>'+
+        '<path class="gr-linha" d="'+linha+'" stroke="url(#'+id+'l)" '+
+          'pathLength="1" style="stroke-dasharray:1"/>'+
+        pontinhos+
+      '</svg>'+
+      rotulos+
+      (temNeg?'<div class="gr-zrot" style="top:'+(yZero/H*100).toFixed(2)+'%">ZERO</div>':'')+
+      areas+
+    '</div>'+
+    '<div class="gr-eixo">'+pontos.map(p=>'<div><div class="gr-mes">'+p.mes+'</div>'+
+      (p.sub!=null?'<div class="gr-var" style="color:'+(p.cor||"var(--fraco)")+'">'+p.sub+'</div>':"")+
+      '</div>').join("")+'</div>'+
+  '</div>';
 }
 
 /* =====================================================================
@@ -947,7 +1026,7 @@ async function vParceiro(){
     .eq("competencia",COMP).order("pagar_bonus",{ascending:false});
   if(r.error) return falha(r.error);
   el("alvo").innerHTML =
-    '<div class="cx sec">'+
+    '<div class="cx sec aberta" style="margin-bottom:16px">'+
       secTopo(IC.linha,"","Evolução do parceiro","o ano inteiro de uma barra, mês a mês")+
       '<div class="barra-ctrl">'+
         seletor("escFicha", BARRA, "Escolha uma barra…",
