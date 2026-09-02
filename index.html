@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gerencial · Seja Livre</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --tinta:#12161c; --papel:#f7f5f0; --carbono:#1b2129; --linha:#2c343f;
+  --grafite:#8c98a8; --verde:#4d9d74; --ocre:#c8912f; --carmim:#b4503f; --azul:#5a8fc7;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--tinta);color:var(--papel);
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-size:16px;line-height:1.55}
+.wrap{max-width:960px;margin:0 auto;padding:32px 20px 80px}
+header{display:flex;align-items:baseline;justify-content:space-between;
+  border-bottom:1px solid var(--linha);padding-bottom:14px;margin-bottom:28px;flex-wrap:wrap;gap:8px}
+h1{font-size:26px;font-weight:600;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--grafite);font-weight:400}
+#quem{font-size:13px;color:var(--grafite)}
+#login{max-width:360px;margin:14vh auto 0}
+#login p{color:var(--grafite);font-size:15px;margin:0 0 22px}
+label{display:block;font-size:13px;color:var(--grafite);margin:14px 0 5px}
+input[type=email],input[type=password],input[type=month]{width:100%;padding:10px 12px;
+  background:var(--carbono);color:var(--papel);border:1px solid var(--linha);
+  border-radius:3px;font-size:15px;font-family:inherit}
+input:focus,button:focus{outline:2px solid var(--azul);outline-offset:1px}
+button{padding:10px 18px;background:var(--azul);color:#0d1116;border:0;border-radius:3px;
+  font:600 15px/1 inherit;cursor:pointer}
+button.discreto{background:transparent;color:var(--grafite);border:1px solid var(--linha);font-weight:400}
+button:disabled{opacity:.45;cursor:not-allowed}
+#login button{width:100%;margin-top:24px;padding:12px}
+.solta{border:1px dashed var(--linha);border-radius:4px;padding:34px 24px;text-align:center;
+  background:var(--carbono);cursor:pointer;transition:border-color .15s,background .15s}
+.solta:hover,.solta.sobre{border-color:var(--azul);background:#1f2732}
+.solta strong{display:block;font-size:17px;margin-bottom:6px}
+.solta span{color:var(--grafite);font-size:14px}
+.campo-mes{display:flex;gap:16px;align-items:flex-end;margin:24px 0}
+.campo-mes>div:first-child{flex:0 0 190px}
+.campo-mes>div:last-child{flex:1;color:var(--grafite);font-size:13.5px;padding-bottom:9px}
+.cartao{margin-top:20px;border:1px solid var(--linha);border-radius:4px;overflow:hidden}
+.cartao h2{margin:0;padding:12px 16px;background:var(--carbono);font-size:15px;font-weight:600;
+  border-bottom:1px solid var(--linha);display:flex;justify-content:space-between;gap:12px}
+.cartao h2 em{font-style:normal;color:var(--grafite);font-weight:400;font-size:13px}
+.cartao .corpo{padding:16px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--linha)}
+th{color:var(--grafite);font-weight:400;font-size:13px}
+td.n{text-align:right;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13.5px}
+tr:last-child td{border-bottom:0}
+tfoot td{font-weight:600;border-top:1px solid var(--linha);border-bottom:0}
+.aviso{padding:11px 14px;border-radius:3px;font-size:14px;margin:12px 0;
+  border-left:3px solid var(--grafite);background:#1a2028}
+.aviso.bom{border-left-color:var(--verde)}
+.aviso.atencao{border-left-color:var(--ocre)}
+.aviso.ruim{border-left-color:var(--carmim)}
+.progresso{height:3px;background:var(--linha);border-radius:2px;overflow:hidden;margin:14px 0}
+.progresso div{height:100%;background:var(--azul);width:0;transition:width .25s}
+.acoes{display:flex;gap:12px;margin-top:18px;align-items:center;flex-wrap:wrap}
+.esconde{display:none}
+footer{margin-top:52px;padding-top:14px;border-top:1px solid var(--linha);
+  font-size:12px;color:var(--grafite);display:flex;justify-content:space-between}
+@media (max-width:560px){.campo-mes{flex-direction:column;align-items:stretch}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <h1>Gerencial <span>Seja Livre</span></h1>
+  <p>Entre com seu e-mail e senha.</p>
+  <label for="email">E-mail</label><input id="email" type="email" autocomplete="username">
+  <label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password">
+  <button id="btEntrar">Entrar</button>
+  <div id="erroLogin" class="aviso ruim esconde"></div>
+</section>
+
+<main id="app" class="wrap esconde">
+  <header>
+    <h1>Gerencial <span>· importação</span></h1>
+    <div id="quem"></div>
+  </header>
+
+  <div class="campo-mes">
+    <div><label for="mes">Competência</label><input id="mes" type="month"></div>
+    <div>Vale para os arquivos mensais: produção e custos. Os relatórios diários
+      trazem a data neles mesmos.</div>
+  </div>
+
+  <div class="solta" id="solta">
+    <strong>Solte os arquivos aqui</strong>
+    <span>Reconheço pelo conteúdo — pode soltar vários de uma vez</span>
+    <input type="file" id="arquivo" accept=".xlsx,.xls,.csv" multiple hidden>
+  </div>
+
+  <div id="fila"></div>
+
+  <footer><span>Receitas e pagamentos</span><span id="versao"></span></footer>
+</main>
+
+<script>
+const URL_SB = 'https://SEU_PROJETO.supabase.co';
+const CHAVE  = 'SUA_CHAVE_PUBLISHABLE';
+const VERSAO = 'v02/09 22:30';
+
+const sb = supabase.createClient(URL_SB, CHAVE);
+const $ = s => document.querySelector(s);
+const brl = v => (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const int = v => (Number(v)||0).toLocaleString('pt-BR');
+$('#versao').textContent = VERSAO;
+$('#mes').value = new Date().toISOString().slice(0,7);
+
+/* ---------- leitura de texto ---------- */
+function consertaTexto(s){
+  if(typeof s!=='string' || !/[\u00C3\u00C2][\u0080-\u00BF]/.test(s)) return s;
+  try{ return new TextDecoder('utf-8',{fatal:false})
+        .decode(Uint8Array.from([...s], c => c.charCodeAt(0) & 0xff)); }
+  catch(e){ return s; }
+}
+const txt = v => v==null||v==='' ? null : consertaTexto(String(v).trim());
+const num = v => {
+  if(v==null||v==='') return null;
+  if(typeof v==='number') return v;
+  let s = String(v).trim();
+  const pct = s.endsWith('%');
+  if(pct) s = s.slice(0,-1);
+  const n = parseFloat(s.includes(',') ? s.replace(/\./g,'').replace(',','.') : s);
+  return isNaN(n) ? null : (pct ? n/100 : n);
+};
+const digitos = v => (String(v==null?'':v).replace(/\D/g,'') || null);
+function dataISO(v){
+  if(v instanceof Date) return v.toISOString().slice(0,10);
+  if(typeof v==='number'){ const d=XLSX.SSF.parse_date_code(v);
+    return d ? d.y+'-'+String(d.m).padStart(2,'0')+'-'+String(d.d).padStart(2,'0') : null; }
+  const s=String(v||'').trim(); const m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m) return m[3]+'-'+m[2]+'-'+m[1];
+  return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0,10) : null;
+}
+const dataBR = v => { const i=dataISO(v);
+  return i ? i.slice(8,10)+'/'+i.slice(5,7)+'/'+i.slice(0,4) : null; };
+
+/* ---------- login ---------- */
+$('#btEntrar').onclick = async () => {
+  const err=$('#erroLogin'); err.classList.add('esconde');
+  const r = await sb.auth.signInWithPassword({
+    email:$('#email').value.trim(), password:$('#senha').value});
+  if(r.error){ err.textContent='Não entrou: '+r.error.message; err.classList.remove('esconde'); return; }
+  abrir();
+};
+$('#senha').addEventListener('keydown', e => { if(e.key==='Enter') $('#btEntrar').click(); });
+
+async function abrir(){
+  const u = await sb.auth.getUser();
+  const user = u.data && u.data.user;
+  if(!user) return;
+  const p = await sb.rpc('gerencial_papel');
+  if(!p.data){
+    $('#erroLogin').textContent='Sua conta entrou, mas não está liberada no gerencial. Peça para um admin te cadastrar.';
+    $('#erroLogin').classList.remove('esconde'); await sb.auth.signOut(); return;
+  }
+  $('#login').classList.add('esconde'); $('#app').classList.remove('esconde');
+  $('#quem').innerHTML = user.email+' · '+p.data+' <button class="discreto" id="btSair">Sair</button>';
+  $('#btSair').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+}
+sb.auth.getSession().then(r => { if(r.data.session) abrir(); });
+
+/* ---------- arquivos ---------- */
+const solta=$('#solta'), input=$('#arquivo');
+solta.onclick = () => input.click();
+solta.ondragover = e => { e.preventDefault(); solta.classList.add('sobre'); };
+solta.ondragleave = () => solta.classList.remove('sobre');
+solta.ondrop = e => { e.preventDefault(); solta.classList.remove('sobre'); receber([...e.dataTransfer.files]); };
+input.onchange = () => receber([...input.files]);
+
+async function lerPlanilha(file){
+  if(/\.csv$/i.test(file.name)){
+    const bruto = new TextDecoder('utf-8').decode(await file.arrayBuffer());
+    const wb = XLSX.read(bruto, {type:'string', FS:';', raw:true});
+    return {abas:wb.SheetNames, wb};
+  }
+  const wb = XLSX.read(await file.arrayBuffer(), {cellDates:true});
+  return {abas:wb.SheetNames, wb};
+}
+const linhasDe = (wb, aba, pular) =>
+  XLSX.utils.sheet_to_json(wb.Sheets[aba], {range:pular||0, defval:null});
+
+/* Produção e custos partilham colunas; a aba FAIXAS_TRADER separa os dois. */
+function classificar(abas, colunas){
+  if(abas.some(a => a.toUpperCase().indexOf('FAIXAS') >= 0)) return 'producao';
+  const c = colunas.map(x => (x||'').toUpperCase());
+  const tem = s => c.some(x => x.indexOf(s) >= 0);
+  if(tem('COMISS')) return 'custos';
+  if(tem('NOME_FERRAMENTA')) return 'plataformas';
+  return null;
+}
+
+const pendentes = [];
+const marcar = (cartao, t) => cartao.querySelector('h2 em').textContent = t;
+const corpo  = cartao => cartao.querySelector('.corpo');
+const falhar = (cartao, msg) => { marcar(cartao,'não entrou');
+  corpo(cartao).innerHTML = '<div class="aviso ruim">'+msg+'</div>'; };
+
+async function receber(files){
+  for(const file of files){
+    const cartao = document.createElement('div');
+    cartao.className = 'cartao';
+    cartao.innerHTML = '<h2>'+file.name+'<em>lendo…</em></h2><div class="corpo"></div>';
+    $('#fila').prepend(cartao);
+    try{ await analisar(file, cartao); }
+    catch(e){ falhar(cartao, e.message || e); }
+  }
+  input.value = '';
+}
+
+async function analisar(file, cartao){
+  const {abas, wb} = await lerPlanilha(file);
+  const principal = abas.find(a => a.toLowerCase()==='data') || abas[0];
+  const pular = principal.toLowerCase()==='data' ? 1 : 0;  // a aba Data tem uma nota antes do cabeçalho
+  const linhas = linhasDe(wb, principal, pular);
+  if(!linhas.length) return falhar(cartao, 'O arquivo não tem linhas.');
+  const colunas = Object.keys(linhas[0]);
+
+  let tipo = classificar(abas, colunas);
+  if(!tipo){
+    const d = await sb.rpc('detectar_formato', {p_colunas: colunas});
+    tipo = d.data || null;
+  }
+
+  if(tipo === 'producao')        return verProducao(file, wb, abas, cartao);
+  if(tipo === 'custos')          return verCustos(file, linhas, cartao);
+  if(tipo === 'plataformas')     return verPlataformas(file, linhas, cartao);
+  if(tipo === 'habilitacao')     return verChegadas(file, linhas, cartao, 'habilitacao');
+  if(tipo === 'chegou_na_livre') return verChegadas(file, linhas, cartao, 'chegou');
+  if(tipo === 'saiu_da_livre')   return verSaidas(file, linhas, cartao);
+  if(tipo && tipo.indexOf('volume') === 0){
+    marcar(cartao,'reconhecido, não importado aqui');
+    return corpo(cartao).innerHTML = '<div class="aviso atencao">'+
+      'Isto é volume operado ('+tipo+'). Suba pelo painel do Volume Operado, que já separa '+
+      'DMA de zeragem. Trazer para cá sem revisar o mapeamento arriscaria substituir '+
+      'volume bom por errado.</div>';
+  }
+
+  marcar(cartao,'formato desconhecido');
+  corpo(cartao).innerHTML = '<div class="aviso atencao">Não reconheci este arquivo. '+
+    'Colunas encontradas:<br><span style="color:var(--grafite);font-size:13px">'+
+    colunas.join(' · ')+'</span><br><br>Para ensinar o formato, cadastre-o em '+
+    '<b>formatos_importacao</b> no CRM.</div>';
+}
+
+/* ============ PRODUÇÃO ============ */
+const DESCARTAR = ['incentivo - faixas traders',
+                   'produção do fernando barbosa apuração em modelo separado.'];
+
+function verProducao(file, wb, abas, cartao){
+  const abaData = abas.find(a => a.toLowerCase()==='data');
+  const abaFx   = abas.find(a => a.toUpperCase().indexOf('FAIXAS') >= 0);
+  const receitas = [], fora = {custo:0, incentivo:0, fernando:0};
+  for(const l of linhasDe(wb, abaData, 1)){
+    const tipo = txt(l['TIPO PRODUTO']) || '';
+    const desc = (txt(l['DESCRICAO'])||'').toLowerCase();
+    if(tipo === 'Custo de Plataforma'){ fora.custo++; continue; }
+    if(desc === DESCARTAR[0]){ fora.incentivo++; continue; }
+    if(desc === DESCARTAR[1]){ fora.fernando++; continue; }
+    receitas.push({
+      barra: txt(l['ASSESSOR']), cod_assessor: txt(l['COD SINACOR ASSESSOR']),
+      tipo_produto: tipo||null, produto: txt(l['PRODUTO']),
+      sinacor_cliente: txt(l['COD SINACOR CLIENTE']), cpf_cnpj: txt(l['CPF/CNPJ']),
+      cliente: txt(l['CLIENTE']), data_receita: dataISO(l['DATA DE RECEITA']),
+      receita_genial: num(l['RECEITA GENIAL (*)']),
+      repasse_aai: txt(l['REPASSE AAI']), repasse_assessor: txt(l['REPASSE ASSESSOR']),
+      valor_bruto_aai: num(l['VALOR BRUTO AAI']), imposto: num(l['IMPOSTO']),
+      valor_liquido_aai: num(l['VALOR LIQUIDO AAI']),
+      comissao_assessor: num(l['COMISSÃO ASSESSOR']) || 0,
+      descricao: txt(l['DESCRICAO'])
+    });
+  }
+  const bonus = [];
+  for(const l of linhasDe(wb, abaFx, 1)){
+    const nome = txt(l['CLIENTE']); const inc = num(l['INCENTIVO'])||0;
+    if(nome && inc > 0) bonus.push({cliente:nome, pontos:num(l['QTDE PONTOS']), incentivo:inc});
+  }
+  const somaR = receitas.reduce((s,r)=>s+(r.comissao_assessor||0),0);
+  const somaB = bonus.reduce((s,b)=>s+b.incentivo,0);
+
+  marcar(cartao,'produção da Genial');
+  corpo(cartao).innerHTML =
+    '<table>'+
+      '<tr><td>Receita AAI</td><td class="n">'+int(receitas.length)+' linhas</td>'+
+        '<td class="n">'+brl(somaR)+'</td></tr>'+
+      '<tr><td>Bônus dos pontos</td><td class="n">'+int(bonus.length)+' clientes</td>'+
+        '<td class="n">'+brl(somaB)+'</td></tr>'+
+    '</table>'+
+    '<p style="color:var(--grafite);font-size:13.5px;margin:14px 0 0">Fora da conta: '+
+      int(fora.custo)+' linhas de custo de plataforma (vêm do arquivo de custos), '+
+      fora.incentivo+' do incentivo agregado (entra pelos pontos) e '+
+      fora.fernando+' do ajuste do Fernando Barbosa (barra fora do gerencial).</p>'+
+    '<div class="acoes"><button>Importar em '+$('#mes').value+'</button></div>'+
+    '<div class="progresso esconde"><div></div></div><div class="passo"></div>';
+  cartao.querySelector('button').onclick = e =>
+    enviarProducao(e.target, cartao, receitas, bonus);
+}
+
+async function enviarProducao(bt, cartao, receitas, bonus){
+  const comp = $('#mes').value + '-01';
+  const passo = cartao.querySelector('.passo');
+  const barra = cartao.querySelector('.progresso'), pre = barra.firstElementChild;
+  bt.disabled = true; barra.classList.remove('esconde');
+  try{
+    passo.innerHTML = '<div class="aviso">Abrindo lote…</div>';
+    const a = await sb.rpc('abrir_lote',{p_competencia:comp, p_origem:'receitas'});
+    if(a.error) throw a.error;
+    const TAM = 1500;
+    for(let i=0; i<receitas.length; i+=TAM){
+      const e = await sb.rpc('enviar_lote',{p_lote_id:a.data, p_linhas:receitas.slice(i,i+TAM)});
+      if(e.error) throw e.error;
+      const feito = Math.min(i+TAM, receitas.length);
+      pre.style.width = (feito/receitas.length*100)+'%';
+      passo.innerHTML = '<div class="aviso">Receita — '+int(feito)+' de '+int(receitas.length)+'.</div>';
+    }
+    passo.innerHTML = '<div class="aviso">Ativando o mês…</div>';
+    const at = await sb.rpc('ativar_lote',{p_lote_id:a.data});
+    if(at.error) throw at.error;
+    passo.innerHTML = '<div class="aviso">Bônus — buscando a barra de cada cliente…</div>';
+    const rb = await sb.rpc('importar_bonus',{p_competencia:comp, p_linhas:bonus});
+    if(rb.error) throw rb.error;
+    const t = (await sb.rpc('gerencial_totais',{p_competencia:comp})).data;
+    pre.style.width='100%'; marcar(cartao,'importado');
+    passo.innerHTML =
+      '<div class="aviso bom"><b>Importado.</b> '+int(at.data.linhas)+
+        ' linhas de receita e '+int(rb.data.linhas)+' de bônus.</div>'+
+      (rb.data.sem_barra ? '<div class="aviso atencao">'+int(rb.data.sem_barra)+
+        ' clientes do bônus ficaram sem barra: o nome não bateu com o cadastro. '+
+        'Não entram em barra nenhuma até serem resolvidos.</div>' : '')+
+      ((!t || Number(t.custos)===0) ? '<div class="aviso ruim"><b>Sem custo de plataforma '+
+        'neste mês.</b> O valor a pagar está inflado. Suba o arquivo de custos antes de pagar.</div>' : '')+
+      (t ? '<table style="margin-top:14px">'+
+        '<tr><td>Receita AAI</td><td class="n">'+brl(t.receita_aai)+'</td></tr>'+
+        '<tr><td>Bônus</td><td class="n">'+brl(t.bonus)+'</td></tr>'+
+        '<tr><td>Custo de plataforma</td><td class="n">'+brl(t.custos)+'</td></tr>'+
+        '<tfoot><tr><td>A pagar aos parceiros</td><td class="n">'+brl(t.a_pagar)+
+        '</td></tr></tfoot></table>' : '');
+  }catch(err){
+    passo.innerHTML = '<div class="aviso ruim"><b>Não importou.</b> '+(err.message||err)+
+      '<br>Nada foi ativado — o mês anterior continua valendo.</div>';
+    bt.disabled = false;
+  }
+}
+
+/* ============ CUSTOS ============
+   receber_custos apaga a competência inteira antes de gravar. Por isso os
+   arquivos de custo ficam em fila e sobem JUNTOS: enviar um depois do outro
+   faria o segundo apagar o primeiro. */
+function verCustos(file, linhas, cartao){
+  const itens = linhas.map(l => ({
+    sinacor: digitos(l['COD SINACOR CLIENTE Sem digito'] != null
+                     ? l['COD SINACOR CLIENTE Sem digito'] : l['COD SINACOR CLIENTE']),
+    descricao: txt(l['DESCRICAO']),
+    cpf: digitos(l['CPF/CNPJ']), nome: txt(l['CLIENTE']), barra: txt(l['ASSESSOR']),
+    tipo_produto: txt(l['TIPO PRODUTO']), produto: txt(l['PRODUTO']),
+    receita_genial: num(l['RECEITA GENIAL (*)']),
+    repasse_aai: num(l['REPASSE AAI']), repasse_assessor: num(l['REPASSE ASSESSOR']),
+    valor_bruto_aai: num(l['VALOR BRUTO AAI']), imposto: num(l['IMPOSTO']),
+    valor_liquido: num(l['VALOR LIQUIDO AAI']), comissao: num(l['COMISSÃO ASSESSOR'])
+  })).filter(i => i.sinacor && i.descricao);
+
+  pendentes.push({arquivo:file.name, itens});
+  const total = pendentes.reduce((s,p)=>s+p.itens.length,0);
+  const soma  = pendentes.reduce((s,p)=>s+p.itens.reduce((a,i)=>a+(i.comissao||0),0),0);
+  const somaAqui = itens.reduce((a,i)=>a+(i.comissao||0),0);
+
+  marcar(cartao,'custos');
+  corpo(cartao).innerHTML =
+    '<table>'+
+      '<tr><td>Neste arquivo</td><td class="n">'+int(itens.length)+' linhas</td>'+
+        '<td class="n">'+brl(somaAqui)+'</td></tr>'+
+      '<tr><td>Na fila para enviar</td><td class="n">'+int(total)+' linhas</td>'+
+        '<td class="n">'+brl(soma)+'</td></tr>'+
+    '</table>'+
+    '<div class="aviso atencao">Os custos sobem juntos, num envio só. Se você tem o arquivo '+
+      'de parcerias (Akeloo e Automação), solte ele também antes de enviar — enviar separado '+
+      'faz o segundo apagar o primeiro.</div>'+
+    '<div class="acoes"><button>Enviar '+pendentes.length+' arquivo(s) em '+
+      $('#mes').value+'</button></div><div class="passo"></div>';
+  cartao.querySelector('button').onclick = e => enviarCustos(e.target, cartao);
+}
+
+async function enviarCustos(bt, cartao){
+  const partes = $('#mes').value.split('-');
+  const ultimo = new Date(Number(partes[0]), Number(partes[1]), 0).getDate();
+  const comp = partes[0]+'-'+partes[1]+'-'+String(ultimo).padStart(2,'0');
+  const passo = cartao.querySelector('.passo');
+  bt.disabled = true;
+  passo.innerHTML = '<div class="aviso">Enviando…</div>';
+  const itens = [];
+  pendentes.forEach(p => p.itens.forEach(i => itens.push(Object.assign({}, i, {competencia:comp}))));
+  const nomes = pendentes.map(p => p.arquivo).join(' + ');
+  try{
+    const r = await sb.rpc('receber_custos', {lote:{arquivo:nomes, itens:itens}});
+    if(r.error) throw r.error;
+    if(!r.data || !r.data.ok) throw new Error((r.data && r.data.motivo) || 'recusado');
+    marcar(cartao,'importado');
+    const perdidas = r.data.linhas - r.data.gravadas;
+    passo.innerHTML =
+      '<div class="aviso bom"><b>Custos gravados.</b> '+int(r.data.gravadas)+
+        ' linhas em '+comp.slice(8,10)+'/'+comp.slice(5,7)+'/'+comp.slice(0,4)+'.</div>'+
+      (perdidas>0 ? '<div class="aviso atencao">'+int(perdidas)+' linhas não entraram: o mesmo '+
+        'cliente aparece mais de uma vez com a mesma descrição no mês, e a chave da tabela '+
+        'guarda só uma. Foi o que fez junho perder 383 linhas.</div>' : '');
+    pendentes.length = 0;
+  }catch(err){
+    passo.innerHTML = '<div class="aviso ruim"><b>Não gravou.</b> '+(err.message||err)+'</div>';
+    bt.disabled = false;
+  }
+}
+
+/* ============ PLATAFORMAS (adesões) ============ */
+function verPlataformas(file, linhas, cartao){
+  const itens = linhas.map(l => ({
+    conta: digitos(l['CD_CONTA_COM_DIGITO']), ferramenta: txt(l['NOME_FERRAMENTA']),
+    data: dataBR(l['DATA_INICIO']), situacao: txt(l['SITUACAO_ADESAO']),
+    tp_pessoa: txt(l['TP_PESSOA']), assessor: txt(l['NOME_ASSESSOR_ATUAL'])
+  })).filter(i => i.conta && i.ferramenta);
+
+  marcar(cartao,'plataformas contratadas');
+  corpo(cartao).innerHTML =
+    '<div class="aviso">'+int(itens.length)+' adesões. Esta importação <b>substitui</b> '+
+      'a foto anterior inteira — é um retrato do dia, não um acréscimo.</div>'+
+    '<div class="acoes"><button>Atualizar adesões</button></div><div class="passo"></div>';
+  cartao.querySelector('button').onclick = async e => {
+    const bt = e.target; bt.disabled = true;
+    const passo = cartao.querySelector('.passo');
+    const r = await sb.rpc('receber_plataformas',{lote:{arquivo:file.name, itens:itens}});
+    if(r.error || !r.data || !r.data.ok){
+      passo.innerHTML = '<div class="aviso ruim">'+
+        ((r.error && r.error.message) || (r.data && r.data.motivo))+'</div>';
+      bt.disabled = false; return;
+    }
+    marcar(cartao,'importado');
+    passo.innerHTML = '<div class="aviso bom">'+int(r.data.gravadas)+
+      ' adesões gravadas (antes eram '+int(r.data.antes)+').</div>';
+  };
+}
+
+/* ============ CHEGADAS ============ */
+function verChegadas(file, linhas, cartao, origem){
+  const pega = (l, ...nomes) => { for(const n of nomes) if(l[n]!=null) return l[n]; return null; };
+  const itens = linhas.map(l => ({
+    sinacor: digitos(pega(l,'CONTA_SINACOR_SEM_DIGITO','CT_SEM_DIGITO','CD_CONTA')),
+    barra: txt(pega(l,'ASSESSOR_CONTA','NM_ASSESSOR')),
+    data: dataISO(pega(l,'DT_PARTITION','DATA_CRIACAO'))
+  })).filter(i => i.sinacor);
+
+  marcar(cartao, origem==='habilitacao' ? 'contas abertas' : 'entradas confirmadas');
+  corpo(cartao).innerHTML =
+    '<div class="aviso">'+int(itens.length)+' linhas. Quem ainda não tem ficha no CRM '+
+      'ganha uma; quem já tem é atualizado.</div>'+
+    '<div class="acoes"><button>Confirmar entradas</button></div><div class="passo"></div>';
+  cartao.querySelector('button').onclick = async e => {
+    const bt=e.target; bt.disabled=true;
+    const passo = cartao.querySelector('.passo');
+    const r = await sb.rpc('receber_chegadas',{lote:{arquivo:file.name, itens:itens}});
+    if(r.error || !r.data || !r.data.ok){
+      passo.innerHTML = '<div class="aviso ruim">'+
+        ((r.error && r.error.message) || (r.data && r.data.motivo))+'</div>';
+      bt.disabled=false; return;
+    }
+    marcar(cartao,'importado');
+    passo.innerHTML = '<div class="aviso bom">'+int(r.data.linhas)+' entradas confirmadas, '+
+      int(r.data.fichas_criadas)+' fichas novas.</div>';
+  };
+}
+
+/* ============ SAÍDAS ============ */
+function verSaidas(file, linhas, cartao){
+  const pega = (l, ...nomes) => { for(const n of nomes) if(l[n]!=null) return l[n]; return null; };
+  const itens = linhas.map(l => ({
+    sinacor: digitos(pega(l,'CONTA_SINACOR_SEM_DIGITO','CT_SEM_DIGITO')),
+    data: dataBR(pega(l,'DT_PARTITION'))
+  })).filter(i => i.sinacor);
+
+  marcar(cartao,'saídas');
+  corpo(cartao).innerHTML =
+    '<div class="aviso atencao"><b>'+int(itens.length)+' cliente(s) serão desligados.</b> '+
+      'Eles saem do Radar, da Fila, do Clube e de todas as contagens. É a ação mais '+
+      'pesada do sistema — confira antes.</div>'+
+    '<div class="acoes"><button>Desligar '+int(itens.length)+' cliente(s)</button>'+
+      '<button class="discreto">Cancelar</button></div><div class="passo"></div>';
+  const bts = cartao.querySelectorAll('.acoes button');
+  const ok = bts[0], nao = bts[1];
+  nao.onclick = () => { marcar(cartao,'cancelado');
+    corpo(cartao).innerHTML = '<div class="aviso">Nada foi alterado.</div>'; };
+  ok.onclick = async () => {
+    ok.disabled = true; nao.disabled = true;
+    const passo = cartao.querySelector('.passo');
+    const r = await sb.rpc('processar_saidas',{lote:{arquivo:file.name, itens:itens}});
+    if(r.error){ passo.innerHTML = '<div class="aviso ruim">'+r.error.message+'</div>';
+      ok.disabled=false; nao.disabled=false; return; }
+    marcar(cartao,'processado');
+    passo.innerHTML = '<div class="aviso bom">'+int(r.data.desligados)+' desligados.</div>'+
+      (r.data.sem_ficha ? '<div class="aviso atencao">'+int(r.data.sem_ficha)+
+        ' não tinham ficha no CRM — a saída ficou registrada mesmo assim.</div>' : '')+
+      (r.data.ja_registrados ? '<div class="aviso">'+int(r.data.ja_registrados)+
+        ' já constavam como saídos.</div>' : '');
+  };
+}
+</script>
+</body>
+</html>
