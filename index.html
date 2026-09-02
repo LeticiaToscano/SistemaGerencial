@@ -258,6 +258,34 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
 .tor .x{margin-left:auto;color:var(--fraco);font-size:15px;cursor:pointer}
 @keyframes ti{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
 
+/* seletor próprio: o <select> do navegador abre uma lista branca com a
+   fonte do sistema, que não obedece estilo nenhum */
+.esc-cx{position:relative;flex:0 0 300px}
+.esc-bt{width:100%;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);
+  border:1px solid var(--linha2);border-radius:10px;padding:9px 13px;color:var(--txt);
+  font:600 13px/1.3 var(--fonte);text-align:left}
+.esc-bt:hover{border-color:rgba(46,229,157,.35)}
+.esc-bt .tx{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.esc-bt .se{color:var(--fraco);font-size:11px}
+.esc-lista{position:absolute;top:calc(100% + 7px);left:0;right:0;z-index:30;
+  background:var(--carta2);border:1px solid var(--linha2);border-radius:14px;overflow:hidden;
+  box-shadow:0 26px 60px -18px rgba(0,0,0,.85);display:none}
+.esc-lista.on{display:block}
+.esc-busca{padding:11px;border-bottom:1px solid var(--linha)}
+.esc-busca input{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--linha2);
+  border-radius:9px;padding:9px 12px;color:var(--txt);font:400 13px var(--fonte)}
+.esc-busca input:focus{outline:none;border-color:rgba(46,229,157,.5)}
+.esc-rol{max-height:290px;overflow-y:auto;padding:6px}
+.esc-it{padding:10px 12px;border-radius:9px;cursor:pointer;font-size:13px;display:flex;gap:10px}
+.esc-it:hover{background:rgba(255,255,255,.05)}
+.esc-it.on{background:var(--verde-fundo);color:var(--verde)}
+.esc-it .b{font-weight:700;flex:0 0 auto}
+.esc-it .p{color:var(--fraco);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.esc-it.on .p{color:var(--verde)}
+.esc-vazio{padding:22px;text-align:center;color:var(--fraco);font-size:12.5px}
+.esc-rol::-webkit-scrollbar{width:9px}
+.esc-rol::-webkit-scrollbar-thumb{background:rgba(255,255,255,.10);border-radius:9px}
+
 .solta{border:1.5px dashed var(--linha2);border-radius:16px;padding:40px 22px;text-align:center;
   cursor:pointer;transition:.18s;margin:0 24px 20px}
 .solta:hover,.solta.sob{border-color:rgba(46,229,157,.5);background:rgba(46,229,157,.045)}
@@ -266,14 +294,31 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
 .prog{height:4px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;margin:0 24px 16px}
 .prog div{height:100%;background:var(--verde);width:0;transition:width .25s}
 
-.col{display:flex;gap:14px;align-items:flex-end;padding:8px 24px 22px}
-.col-c{flex:1;display:flex;flex-direction:column;align-items:center}
-.col-v{font-size:12px;font-weight:700;margin-bottom:8px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.col-b{width:100%;height:140px;display:flex;align-items:flex-end}
-.col-b span{width:100%;border-radius:6px 6px 0 0;
-  background:linear-gradient(180deg,var(--verde),rgba(46,229,157,.14))}
-.col-m{font-size:11px;margin-top:10px;color:var(--dim)}
-.col-d{font-size:11.5px;font-weight:700;margin-top:3px}
+/* Gráfico com linha de base no zero: negativo desce, positivo sobe.
+   Antes, todas as colunas partiam do chão e um prejuízo grande parecia
+   um mês bom. A entrada é animada uma vez, quando o dado chega. */
+.graf{padding:10px 24px 24px}
+.graf-cx{display:flex;gap:12px;align-items:stretch;position:relative}
+.graf-zero{position:absolute;left:0;right:0;border-top:1px dashed rgba(255,255,255,.14);
+  pointer-events:none}
+.graf-zero span{position:absolute;right:0;top:-8px;font-size:9.5px;color:var(--fraco);
+  background:var(--carta2);padding:0 6px;letter-spacing:1px}
+.gc{flex:1;display:flex;flex-direction:column;min-width:0}
+.gc-cima,.gc-baixo{display:flex;flex-direction:column;justify-content:flex-end}
+.gc-baixo{justify-content:flex-start}
+.gc-v{font-size:11.5px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;
+  white-space:nowrap;opacity:0;animation:gv .4s ease forwards}
+.gc-b{width:100%;border-radius:7px 7px 0 0;transform:scaleY(0);transform-origin:bottom;
+  animation:gs .65s cubic-bezier(.2,.8,.3,1) forwards;
+  background:linear-gradient(180deg,var(--verde),rgba(46,229,157,.18))}
+.gc-b.neg{border-radius:0 0 7px 7px;transform-origin:top;
+  background:linear-gradient(0deg,var(--vermelho),rgba(255,92,106,.18))}
+.gc-b:hover{filter:brightness(1.25)}
+@keyframes gs{to{transform:scaleY(1)}}
+@keyframes gv{to{opacity:1}}
+.gc-m{font-size:11px;margin-top:11px;color:var(--dim);text-align:center}
+.gc-d{font-size:11.5px;font-weight:700;margin-top:3px;text-align:center}
+@media(prefers-reduced-motion:reduce){.gc-b{transform:none!important}.gc-v{opacity:1!important}}
 
 @media(max-width:980px){
   .duo,.heroi{grid-template-columns:1fr}
@@ -437,6 +482,59 @@ function ir(v){
     importar:vImportar,edicoes:vEdicoes}[v])();
 }
 
+/* ---------------------------------------------------------------------
+   Seletor próprio. O <select> do navegador abre uma lista branca com a
+   fonte do sistema, e não há CSS que mude isso — então é um painel
+   nosso, com busca por dentro.
+   --------------------------------------------------------------------- */
+function seletor(id, valor, vazio, itens, aoEscolher){
+  const sel = itens.find(function(i){ return i.v === valor; });
+  return '<div class="esc-cx" id="'+id+'">'+
+    '<button class="esc-bt" onclick="abrirSeletor(\''+id+'\')">'+
+      '<span class="tx">'+(sel ? sel.b+(sel.p?' — '+sel.p:'') : vazio)+'</span>'+
+      '<span class="se">▾</span></button>'+
+    '<div class="esc-lista">'+
+      '<div class="esc-busca"><input placeholder="Buscar…" '+
+        'oninput="filtrarSeletor(\''+id+'\',this.value)"></div>'+
+      '<div class="esc-rol">'+
+        '<div class="esc-it'+(valor?"":" on")+'" data-t="'+vazio.toLowerCase()+'" '+
+          'onclick="'+aoEscolher+'(\'\')"><span class="b">'+vazio+'</span></div>'+
+        itens.map(function(i){
+          return '<div class="esc-it'+(i.v===valor?" on":"")+'" '+
+            'data-t="'+(i.b+' '+i.p).toLowerCase().replace(/"/g,'')+'" '+
+            'onclick="'+aoEscolher+'(\''+String(i.v).replace(/'/g,"\\'")+'\')">'+
+            '<span class="b">'+i.b+'</span>'+(i.p?'<span class="p">'+i.p+'</span>':'')+'</div>';
+        }).join("")+
+      '</div></div></div>';
+}
+function abrirSeletor(id){
+  document.querySelectorAll(".esc-lista").forEach(function(l){
+    if(!l.closest(".esc-cx") || l.closest(".esc-cx").id!==id) l.classList.remove("on"); });
+  const cx=el(id); if(!cx) return;
+  const l=cx.querySelector(".esc-lista");
+  l.classList.toggle("on");
+  if(l.classList.contains("on")){ const b=l.querySelector("input"); if(b) b.focus(); }
+}
+function filtrarSeletor(id,txt){
+  const t=String(txt||"").toLowerCase().trim();
+  const cx=el(id); if(!cx) return;
+  let vis=0;
+  cx.querySelectorAll(".esc-it").forEach(function(i){
+    const ok = !t || (i.dataset.t||"").indexOf(t)>=0;
+    i.style.display = ok?"":"none"; if(ok) vis++;
+  });
+  let v=cx.querySelector(".esc-vazio");
+  if(!vis && !v){ v=document.createElement("div"); v.className="esc-vazio";
+    v.textContent="Nada com esse texto."; cx.querySelector(".esc-rol").appendChild(v); }
+  else if(vis && v) v.remove();
+}
+document.addEventListener("click",function(e){
+  if(!e.target.closest(".esc-cx"))
+    document.querySelectorAll(".esc-lista").forEach(function(l){ l.classList.remove("on"); });
+});
+function escolheuBarra(v){ BUSCA=v; TODAS=false; pintarResumo(); }
+function escolheuFicha(v){ verBarra(v); }
+
 /* peças reaproveitadas */
 const quadro=(r,v,s,c)=>'<div class="q"><div class="rot">'+r+'</div>'+
   '<div class="vl'+(c?" "+c:"")+'">'+v+'</div><div class="sb">'+s+'</div></div>';
@@ -539,14 +637,11 @@ function secBarras(){
         '</button>').join("")+
       '<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--dim);margin-left:4px">'+
         '<input type="checkbox" '+(SO_NEG?"checked":"")+' onchange="SO_NEG=this.checked;pintarResumo()"> só as negativas</label>'+
-      '<select class="ent sel" onchange="BUSCA=this.value;pintarResumo()" '+
-        'style="margin-left:auto;flex:0 0 290px">'+
-        '<option value="">Todas as barras</option>'+
+      seletor("escBarra", BUSCA, "Todas as barras",
         LINHAS.slice().sort(function(a,b){
           return String(a.barra).localeCompare(String(b.barra),"pt-BR"); })
-        .map(function(x){ return '<option value="'+x.barra+'" '+(BUSCA===x.barra?"selected":"")+'>'+
-          x.barra+(x.parceiro?" — "+x.parceiro:"")+'</option>'; }).join("")+
-      '</select>'+
+        .map(function(x){ return {v:x.barra, b:x.barra, p:x.parceiro||""}; }),
+        "escolheuBarra")+
       '<button class="bt" onclick="baixarResumo()">Exportar</button>'+
     '</div>'+
     '<div class="rola">'+tabela(TODAS||BUSCA?l:l.slice(0,10))+'</div>'+
@@ -769,8 +864,8 @@ async function vPagamentos(){
       '</div></div>'+
     '<div class="cx sec">'+
       secTopo(IC.nota,"v","Pagamentos","quem já recebeu, quando, e por quem foi registrado",
-        ['aberto','pago','todos'].map(k=>'<button class="chip" style="cursor:pointer;'+
-          (FPAG===k?"border-color:rgba(46,229,157,.4);color:var(--verde)":"")+'" '+
+        ['aberto','pago','todos'].map(k=>'<button class="bt" style="border-radius:999px;'+
+          (FPAG===k?"background:var(--verde-fundo);border-color:rgba(46,229,157,.35);color:var(--verde)":"")+'" '+
           'onclick="FPAG=\''+k+'\';vPagamentos()">'+
           (k==="aberto"?"Em aberto":k==="pago"?"Pagos":"Todos")+'</button>').join(""))+
       (!lista.length?'<div class="vazio">Nada neste filtro.</div>'
@@ -806,6 +901,43 @@ async function pagar(barra,valor,situacao){
   vPagamentos();
 }
 
+/* ---------------------------------------------------------------------
+   Gráfico de colunas com linha de base no zero. Prejuízo desce, lucro
+   sobe — antes tudo partia do chão e um mês negativo grande parecia
+   um mês bom. A altura é proporcional ao maior valor absoluto, então
+   as duas metades ficam comparáveis entre si.
+   --------------------------------------------------------------------- */
+function grafico(pontos, alt){
+  alt = alt || 190;
+  const vals = pontos.map(p=>Number(p.valor)||0);
+  const max = Math.max(1, ...vals.map(Math.abs));
+  const temNeg = vals.some(v=>v<0);
+  const hCima = temNeg ? Math.round(alt*0.62) : alt;
+  const hBaixo = temNeg ? alt-hCima : 0;
+  const alturaCima = Math.max(...vals.map(v=>v>0?v:0)) || max;
+  const alturaBaixo = Math.max(...vals.map(v=>v<0?-v:0)) || max;
+
+  return '<div class="graf"><div class="graf-cx">'+
+    '<div class="graf-zero" style="top:'+hCima+'px"><span>ZERO</span></div>'+
+    pontos.map(function(p,i){
+      const v=Number(p.valor)||0, neg=v<0, atraso=(i*0.07).toFixed(2)+'s';
+      const h = neg ? Math.max(4,Math.round(hBaixo*(-v)/alturaBaixo))
+                    : Math.max(4,Math.round(hCima*v/alturaCima));
+      return '<div class="gc" title="'+(p.dica||"")+'">'+
+        '<div class="gc-cima" style="height:'+hCima+'px">'+
+          (neg?'':'<div class="gc-v" style="animation-delay:'+atraso+'">'+p.rotulo+'</div>'+
+               '<div class="gc-b" style="height:'+h+'px;animation-delay:'+atraso+'"></div>')+
+        '</div>'+
+        (temNeg?'<div class="gc-baixo" style="height:'+hBaixo+'px">'+
+          (neg?'<div class="gc-b neg" style="height:'+h+'px;animation-delay:'+atraso+'"></div>'+
+               '<div class="gc-v" style="animation-delay:'+atraso+';color:var(--vermelho)">'+p.rotulo+'</div>':'')+
+        '</div>':'')+
+        '<div class="gc-m">'+p.mes+'</div>'+
+        (p.sub!=null?'<div class="gc-d" style="color:'+(p.cor||"var(--fraco)")+'">'+p.sub+'</div>':'')+
+      '</div>';
+    }).join("")+'</div></div>';
+}
+
 /* =====================================================================
    EVOLUÇÃO DO PARCEIRO
    ===================================================================== */
@@ -817,11 +949,10 @@ async function vParceiro(){
   el("alvo").innerHTML =
     '<div class="cx sec">'+
       secTopo(IC.linha,"","Evolução do parceiro","o ano inteiro de uma barra, mês a mês")+
-      '<div class="barra-ctrl"><select class="ent sel" style="flex:0 0 340px" onchange="verBarra(this.value)">'+
-        '<option value="">Escolha uma barra…</option>'+
-        (r.data||[]).map(x=>'<option value="'+x.barra+'" '+(BARRA===x.barra?"selected":"")+'>'+
-          x.barra+(x.parceiro?" — "+x.parceiro:"")+'</option>').join("")+
-      '</select></div></div><div id="ficha"></div>';
+      '<div class="barra-ctrl">'+
+        seletor("escFicha", BARRA, "Escolha uma barra…",
+          (r.data||[]).map(x=>({v:x.barra,b:x.barra,p:x.parceiro||""})), "escolheuFicha")+
+      '</div></div><div id="ficha"></div>';
   if(BARRA) verBarra(BARRA);
   else el("ficha").innerHTML='<div class="cx vazio">Escolha uma barra para ver a evolução dela no ano.</div>';
 }
@@ -850,15 +981,10 @@ async function verBarra(b){
       '</div></div>'+
     '<div class="cx sec">'+
       secTopo(IC.torta,"v","Quanto recebeu por mês","a variação é contra o mês anterior",'<span class="chip">valores em <b>R$</b></span>')+
-      '<div class="col">'+m.map(x=>{ const v=Number(x.a_pagar)||0;
-        return '<div class="col-c"><div class="col-v">'+brl(v)+'</div>'+
-          '<div class="col-b"><span style="height:'+Math.max(5,Math.round(100*Math.abs(v)/max))+'%'+
-            (v<0?";background:linear-gradient(180deg,var(--vermelho),rgba(255,92,106,.15))":"")+'"></span></div>'+
-          '<div class="col-m">'+mesCurto(x.competencia)+'</div>'+
-          '<div class="col-d" style="color:'+(x.variacao_pct==null?"var(--fraco)":
-            x.variacao_pct>0?"var(--verde)":"var(--vermelho)")+'">'+
-            (x.variacao_pct==null?"—":(x.variacao_pct>0?"+":"")+x.variacao_pct+"%")+'</div></div>';
-      }).join("")+'</div>'+
+      grafico(m.map(x=>({valor:x.a_pagar, rotulo:brl(x.a_pagar), mes:mesCurto(x.competencia),
+        sub:(x.variacao_pct==null?"—":(x.variacao_pct>0?"+":"")+x.variacao_pct+"%"),
+        cor:(x.variacao_pct==null?"var(--fraco)":x.variacao_pct>0?"var(--verde)":"var(--vermelho)"),
+        dica:mesNome(x.competencia)+" · líquido "+brl(x.liquido)})))+
       '<div class="rola"><table><thead><tr><th>Mês</th><th class="n">Novos</th><th class="n">Contratos</th>'+
         '<th class="n">Receita AAI</th><th class="n">Bônus</th><th class="n">Custos</th>'+
         '<th class="n">Líquido</th><th class="n s">Recebeu</th><th class="n">Acumulado</th>'+
@@ -920,12 +1046,9 @@ async function vCasa(){
         '</div></div></div>'+
     '<div class="cx sec">'+
       secTopo(IC.casa,"","Mês a mês","repasse aos parceiros ao longo do ano",'<span class="chip">valores em <b>R$</b></span>')+
-      '<div class="col">'+m.map(x=>'<div class="col-c">'+
-        '<div class="col-v">'+brl(x.a_pagar_parceiros)+'</div>'+
-        '<div class="col-b"><span style="height:'+
-          Math.max(5,Math.round(100*(Number(x.a_pagar_parceiros)||0)/max))+'%"></span></div>'+
-        '<div class="col-m">'+mesCurto(x.competencia)+'</div>'+
-        '<div class="col-d f">'+nf(x.barras_com_movimento)+' barras</div></div>').join("")+'</div>'+
+      grafico(m.map(x=>({valor:x.a_pagar_parceiros, rotulo:brl(x.a_pagar_parceiros),
+        mes:mesCurto(x.competencia), sub:nf(x.barras_com_movimento)+" barras",
+        dica:mesNome(x.competencia)+" · fica na casa "+brl(x.fica_na_casa)})))+
       '<div class="rola"><table><thead><tr><th>Mês</th><th class="n">Contratos</th>'+
         '<th class="n">Receita AAI</th><th class="n">Bônus</th><th class="n">Custos</th>'+
         '<th class="n">Líquido</th><th class="n s">Parceiros</th><th class="n">Fica na casa</th>'+
@@ -1000,21 +1123,73 @@ function dataISO(v){
 const DESCARTAR=["incentivo - faixas traders","produção do fernando barbosa apuração em modelo separado."];
 let PRONTO=null;
 
+/* ---------------------------------------------------------------------
+   Os arquivos mudam de formato de mês para mês: o cabeçalho às vezes
+   está na primeira linha, às vezes na quarta; a coluna do mês aparece
+   em uns e não em outros. Por isso nada aqui é por posição fixa.
+   --------------------------------------------------------------------- */
+const nrm=s=>String(s==null?"":s).replace(/\s+/g," ").trim().toUpperCase();
+
+function lerAba(wb, aba, chaves){
+  const bruto=XLSX.utils.sheet_to_json(wb.Sheets[aba],{header:1,defval:null,raw:true});
+  let lin=0;
+  for(let i=0;i<Math.min(8,bruto.length);i++){
+    const c=(bruto[i]||[]).map(nrm);
+    if(chaves.filter(k=>c.some(x=>x.indexOf(k)>=0)).length>=2){ lin=i; break; }
+  }
+  const cab=(bruto[lin]||[]).map(nrm);
+  const linhas=[];
+  for(let i=lin+1;i<bruto.length;i++){
+    const l=bruto[i]||[]; if(!l.some(v=>v!=null&&v!=="")) continue;
+    const o={}; cab.forEach((c,j)=>{ if(c) o[c]=l[j]; });
+    o.__ult = l[l.length-1];
+    linhas.push(o);
+  }
+  return {colunas:cab, linhas:linhas};
+}
+/* devolve o nome da coluna que contém qualquer um dos pedaços */
+function achaCol(cols, ...pedacos){
+  for(const p of pedacos){ const c=cols.find(x=>x&&x.indexOf(p)>=0); if(c) return c; }
+  return null;
+}
+/* o Excel guarda data como número de dias desde 30/12/1899 */
+function mesDe(v){
+  if(v==null||v==="") return null;
+  if(v instanceof Date) return v.getFullYear()+"-"+String(v.getMonth()+1).padStart(2,"0");
+  if(typeof v==="number"&&v>20000&&v<80000){
+    const d=new Date(Date.UTC(1899,11,30)+Math.floor(v)*86400000);
+    return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0");
+  }
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})-(\d{2})/);        if(m) return m[1]+"-"+m[2];
+  m=s.match(/^\d{2}\/(\d{2})\/(\d{4})/);  if(m) return m[2]+"-"+m[1];
+  return null;
+}
+/* a competência sai do mês que mais aparece nas linhas, não do nome do
+   arquivo — nome depende de alguém digitar certo */
+function competenciaDe(linhas, cols){
+  const c = achaCol(cols,"MÊS","MES") || achaCol(cols,"DATA DE RECEITA");
+  if(!c) return null;
+  const conta={};
+  for(const l of linhas){ const m=mesDe(l[c]); if(m) conta[m]=(conta[m]||0)+1; }
+  const ord=Object.entries(conta).sort((a,b)=>b[1]-a[1]);
+  return ord.length ? ord[0][0] : null;
+}
+
 function vImportar(){
   el("alvo").innerHTML =
-    '<div class="aviso c">O gerencial precisa de <b>um upload por mês</b>: o arquivo de produção da '+
-      'Genial. O custo de plataforma continua vindo do CRM, os contratos vêm do Volume Operado e os '+
-      'novos clientes vêm do cadastro.</div>'+
+    '<div class="aviso c">Dois arquivos servem, e o mês é <b>reconhecido por dentro</b> deles:'+
+      '<br>· <b>Produção da Genial</b> (abas Data e FAIXAS_TRADER) — traz receita e bônus; o custo vem do CRM.'+
+      '<br>· <b>Planilha mensal</b> (abas Receitas, Plataforma e Pontos) — traz o mês inteiro, '+
+      'e é por ela que o histórico entra.</div>'+
     '<div class="cx sec">'+
-      secTopo(IC.subir,"v","Arquivo de produção","SEJA_LIVRE_PRODUCAO_&lt;mês&gt;.xlsx",
-        '<span class="chip">competência: <b>'+mesNome(COMP)+'</b></span>')+
+      secTopo(IC.subir,"v","Importar um mês","o arquivo diz de que mês ele é",
+        '<span class="chip">no alto: <b>'+mesNome(COMP)+'</b></span>')+
       '<div class="solta" id="solta"><strong>Solte o arquivo aqui</strong>'+
-        '<span>ou clique para escolher</span></div>'+
+        '<span>ou clique para escolher · .xlsx</span></div>'+
       '<input type="file" id="arq" accept=".xlsx,.xls" hidden>'+
-      '<div style="padding:0 24px 20px;font-size:12.5px;color:var(--fraco);line-height:1.65">'+
-        'A competência é a do alto da tela e <b>não é lida do arquivo</b> — foi lendo do arquivo que '+
-        'a carga de Akeloo entrou com a data do upload.</div>'+
-      '<div id="leitura"></div></div>';
+      '<div id="leitura"></div></div>'+
+    '<div class="cx sec" id="jaEntrou"></div>';
   const d=el("solta"), i=el("arq");
   d.onclick=()=>i.click();
   d.ondragover=e=>{e.preventDefault();d.classList.add("sob");};
@@ -1022,59 +1197,201 @@ function vImportar(){
   d.ondrop=e=>{e.preventDefault();d.classList.remove("sob");
     if(e.dataTransfer.files[0]) ler(e.dataTransfer.files[0]);};
   i.onchange=()=>{ if(i.files[0]) ler(i.files[0]); };
+  mesesCarregados();
+}
+
+/* O que já entrou, mês a mês. Sem isso não dá para saber o que falta
+   nem perceber um mês que ficou pela metade. */
+async function mesesCarregados(){
+  const alvo=el("jaEntrou"); if(!alvo) return;
+  const r=await sb.from("vw_gerencial_meses").select("*");
+  if(r.error){ alvo.innerHTML=""; return; }
+  const m=r.data||[];
+  if(!m.length){ alvo.innerHTML=""; return; }
+  alvo.innerHTML =
+    secTopo(IC.lista,"","O que já está carregado","cada mês, com o que entrou de cada fonte",
+      '<span class="chip">valores em <b>R$</b></span>')+
+    '<div class="rola"><table><thead><tr><th>Mês</th><th class="n">Linhas</th>'+
+      '<th class="n">Receita AAI</th><th class="n">Linhas</th><th class="n">Custo</th>'+
+      '<th class="n">Clientes</th><th class="n">Bônus</th><th></th></tr></thead><tbody>'+
+    m.map(function(x){
+      const falta = !Number(x.receita) ? "receita" : !Number(x.custo) ? "custo" : null;
+      return '<tr><td style="font-weight:600">'+mesNome(x.competencia)+'</td>'+
+        '<td class="n f">'+nf(x.linhas_receita)+'</td><td class="n">'+vl(x.receita)+'</td>'+
+        '<td class="n f">'+nf(x.linhas_custo)+'</td><td class="n rubro">'+vl(x.custo)+'</td>'+
+        '<td class="n f">'+nf(x.linhas_bonus)+'</td><td class="n">'+vl(x.bonus)+'</td>'+
+        '<td>'+(falta?'<span class="et et-a">falta '+falta+'</span>'
+                     :'<span class="et et-v">completo</span>')+'</td></tr>';
+    }).join("")+'</tbody></table></div>';
 }
 
 async function ler(file){
   const a=el("leitura");
   a.innerHTML='<div class="carreg"><div class="giro"></div>Lendo '+file.name+'…</div>';
   let wb; try{ wb=XLSX.read(await file.arrayBuffer(),{cellDates:true}); }
-  catch(e){ return a.innerHTML='<div class="aviso r" style="margin:0 24px 20px">Não consegui abrir: '+e.message+'</div>'; }
-  const ad=wb.SheetNames.find(n=>n.toLowerCase()==="data");
-  const af=wb.SheetNames.find(n=>n.toUpperCase().indexOf("FAIXAS")>=0);
-  if(!ad||!af) return a.innerHTML='<div class="aviso r" style="margin:0 24px 20px">'+
-    'Este não é o arquivo de produção. Esperava as abas <b>Data</b> e <b>FAIXAS_TRADER</b>; '+
-    'encontrei: '+wb.SheetNames.join(", ")+'.</div>';
+  catch(e){ return a.innerHTML=nota("Não consegui abrir: "+e.message,"r"); }
+
+  const abas=wb.SheetNames;
+  const temProducao = abas.some(n=>n.toLowerCase()==="data") &&
+                      abas.some(n=>n.toUpperCase().indexOf("FAIXAS")>=0);
+  const temTotal    = abas.some(n=>nrm(n)==="RECEITAS") && abas.some(n=>nrm(n)==="PLATAFORMA");
+
+  if(temProducao) return lerProducao(file, wb, a);
+  if(temTotal)    return lerTotal(file, wb, abas, a);
+
+  a.innerHTML=nota("Não reconheci este arquivo. Esperava <b>Data + FAIXAS_TRADER</b> "+
+    "(produção da Genial) ou <b>Receitas + Plataforma</b> (planilha mensal). "+
+    "Abas encontradas: "+abas.join(", ")+".","r");
+}
+
+const nota=(txt,c)=>'<div class="aviso'+(c?" "+c:"")+'" style="margin:0 24px 16px">'+txt+'</div>';
+
+/* ---------------------------------------------------------------------
+   Arquivo de produção da Genial: receita e bônus. O custo vem do CRM.
+   --------------------------------------------------------------------- */
+function lerProducao(file, wb, a){
+  const abas=wb.SheetNames;
+  const ad=abas.find(n=>n.toLowerCase()==="data");
+  const af=abas.find(n=>n.toUpperCase().indexOf("FAIXAS")>=0);
+  const D=lerAba(wb,ad,["ASSESSOR","TIPO PRODUTO","COMISS"]);
+  const cAss=achaCol(D.colunas,"ASSESSOR"), cTip=achaCol(D.colunas,"TIPO PRODUTO");
+  const cDes=achaCol(D.colunas,"DESCRICAO","DESCRIÇÃO"), cCom=achaCol(D.colunas,"COMISS");
 
   const receitas=[], fora={custo:0,inc:0,aj:0,barra:0,sem:0}; let foraV=0;
-  for(const l of XLSX.utils.sheet_to_json(wb.Sheets[ad],{range:1,defval:null})){
-    const tipo=txt(l["TIPO PRODUTO"])||"", desc=(txt(l["DESCRICAO"])||"").toLowerCase();
+  for(const l of D.linhas){
+    const tipo=txt(l[cTip])||"", desc=(txt(l[cDes])||"").toLowerCase();
     if(tipo==="Custo de Plataforma"){ fora.custo++; continue; }
     if(desc===DESCARTAR[0]){ fora.inc++; continue; }
     if(desc===DESCARTAR[1]){ fora.aj++; continue; }
-    if(FORA.has(chaveBarra(l["ASSESSOR"]))){ fora.barra++; foraV+=num(l["COMISSÃO ASSESSOR"])||0; continue; }
-    const b=txt(l["ASSESSOR"]); if(!b) fora.sem++;
-    receitas.push({barra:b||"(sem barra)",cod_assessor:txt(l["COD SINACOR ASSESSOR"]),
-      tipo_produto:tipo||null,produto:txt(l["PRODUTO"]),
-      sinacor_cliente:txt(l["COD SINACOR CLIENTE"]),cpf_cnpj:txt(l["CPF/CNPJ"]),
-      cliente:txt(l["CLIENTE"]),data_receita:dataISO(l["DATA DE RECEITA"]),
-      receita_genial:num(l["RECEITA GENIAL (*)"]),repasse_aai:txt(l["REPASSE AAI"]),
-      repasse_assessor:txt(l["REPASSE ASSESSOR"]),valor_bruto_aai:num(l["VALOR BRUTO AAI"]),
-      imposto:num(l["IMPOSTO"]),valor_liquido_aai:num(l["VALOR LIQUIDO AAI"]),
-      comissao_assessor:num(l["COMISSÃO ASSESSOR"])||0,descricao:txt(l["DESCRICAO"])});
+    if(FORA.has(chaveBarra(l[cAss]))){ fora.barra++; foraV+=num(l[cCom])||0; continue; }
+    const b=txt(l[cAss]); if(!b) fora.sem++;
+    receitas.push(linhaReceita(l, D.colunas, b));
   }
+  const F=lerAba(wb,af,["CLIENTE","PONTOS","INCENTIVO"]);
+  const cCli=achaCol(F.colunas,"CLIENTE"), cInc=achaCol(F.colunas,"INCENTIVO"),
+        cPon=achaCol(F.colunas,"PONTOS");
   const bonus=[];
-  for(const l of XLSX.utils.sheet_to_json(wb.Sheets[af],{range:1,defval:null})){
-    const n=txt(l["CLIENTE"]), i=num(l["INCENTIVO"])||0;
-    if(n&&i>0) bonus.push({cliente:n,pontos:num(l["QTDE PONTOS"]),incentivo:i});
+  for(const l of F.linhas){
+    const n=txt(l[cCli]), i=num(l[cInc])||0;
+    if(n&&i>0) bonus.push({cliente:n,pontos:num(l[cPon]),incentivo:i});
   }
-  PRONTO={receitas,bonus};
-  const sr=receitas.reduce((s,x)=>s+(x.comissao_assessor||0),0);
-  const sn=bonus.reduce((s,x)=>s+x.incentivo,0);
+  const comp=competenciaDe(D.linhas,D.colunas);
+  PRONTO={tipo:"producao",receitas:receitas,bonus:bonus,custos:null,comp:comp};
+  pintarLeitura(file,a,{
+    receita:[receitas.length, receitas.reduce((s,x)=>s+(x.comissao_assessor||0),0)],
+    bonus:[bonus.length, bonus.reduce((s,x)=>s+x.incentivo,0)],
+    custo:null, comp:comp,
+    pe:"Fora da conta: "+nf(fora.custo)+" linhas de custo de plataforma (vêm do CRM), "+
+       fora.inc+" do incentivo agregado (entra pelos pontos)"+
+       (fora.barra?", e "+nf(fora.barra)+" linhas de barra excluída ("+brl(foraV)+
+        ", mais "+fora.aj+" de ajuste)":" e "+fora.aj+" de ajuste")+"."+
+       (fora.sem?" "+nf(fora.sem)+" linha(s) vieram sem assessor e entram como <b>(sem barra)</b>, "+
+        "para o valor não sumir.":"")});
+}
 
+/* ---------------------------------------------------------------------
+   Planilha mensal `Total_`: traz Receitas, Plataforma e Pontos juntas —
+   o mês inteiro num arquivo só. É por aqui que entra o histórico.
+   --------------------------------------------------------------------- */
+function lerTotal(file, wb, abas, a){
+  const nR=abas.find(n=>nrm(n)==="RECEITAS"), nP=abas.find(n=>nrm(n)==="PLATAFORMA");
+  const nT=abas.find(n=>nrm(n)==="PONTOS");
+  const R=lerAba(wb,nR,["ASSESSOR","CLIENTE","RECEITA GENIAL"]);
+  const P=lerAba(wb,nP,["ASSESSOR","CLIENTE","RECEITA GENIAL"]);
+  const cAss=achaCol(R.colunas,"ASSESSOR"), cCom=achaCol(R.colunas,"COMISS");
+  if(!cCom) return a.innerHTML=nota("A aba Receitas não tem coluna de <b>comissão do assessor</b>, "+
+    "que é a que o pagamento usa. Colunas encontradas: "+R.colunas.filter(Boolean).join(" · "),"r");
+
+  const receitas=[], fora={barra:0,sem:0}; let foraV=0;
+  for(const l of R.linhas){
+    if(FORA.has(chaveBarra(l[cAss]))){ fora.barra++; foraV+=num(l[cCom])||0; continue; }
+    const b=txt(l[cAss]); if(!b) fora.sem++;
+    receitas.push(linhaReceita(l,R.colunas,b));
+  }
+
+  const pAss=achaCol(P.colunas,"ASSESSOR"), pCom=achaCol(P.colunas,"COMISS"),
+        pDes=achaCol(P.colunas,"DESCRICAO","DESCRIÇÃO","PRODUTO"),
+        pSin=achaCol(P.colunas,"SEM DIGITO","S/ DIGITO")||achaCol(P.colunas,"COD SINACOR CLIENTE"),
+        pCpf=achaCol(P.colunas,"CPF"), pNom=achaCol(P.colunas,"CLIENTE"),
+        pTip=achaCol(P.colunas,"TIPO PRODUTO"), pRec=achaCol(P.colunas,"RECEITA GENIAL"),
+        pLiq=achaCol(P.colunas,"VALOR LIQUIDO","VALOR LÍQUIDO");
+  const custos=[];
+  for(const l of P.linhas){
+    const s=String(l[pSin]==null?"":l[pSin]).replace(/\D/g,"");
+    const d=txt(l[pDes]); if(!s||!d) continue;
+    custos.push({sinacor:s, descricao:d, cpf:txt(l[pCpf]), nome:txt(l[pNom]),
+      barra:txt(l[pAss]), tipo_produto:txt(l[pTip]), produto:txt(l[pDes]),
+      receita_genial:num(l[pRec]), valor_liquido:num(l[pLiq]), comissao:num(l[pCom])||0});
+  }
+
+  let bonus=[], aviso="";
+  if(nT){
+    const T=lerAba(wb,nT,["BARRA","ASSESSOR","SINACOR","CLIENTE","PONTOS"]);
+    const tVal=achaCol(T.colunas,"INCENTIVO","VALOR"),
+          tBar=achaCol(T.colunas,"BARRA","ASSESSOR"),
+          tPon=achaCol(T.colunas,"PONTOS"), tNom=achaCol(T.colunas,"NOME","CLIENTE"),
+          tSin=achaCol(T.colunas,"SINACOR"), tCpf=achaCol(T.colunas,"CPF");
+    if(tVal&&tBar){
+      for(const l of T.linhas){
+        const v=num(l[tVal])||0, b=txt(l[tBar]); if(!(v>0)||!b) continue;
+        bonus.push({cliente:txt(l[tNom]), sinacor:txt(l[tSin]), cpf:txt(l[tCpf]),
+          barra:b, pontos:num(l[tPon]), incentivo:v});
+      }
+    } else {
+      aviso="A aba Pontos deste mês não tem coluna de valor do bônus — ela traz contratos por "+
+            "ativo, não o incentivo. O mês entra <b>sem bônus</b>.";
+    }
+  } else {
+    aviso="Este arquivo não tem aba Pontos: o mês entra <b>sem bônus</b>. "+
+          "O programa de faixas só aparece nos arquivos a partir de junho.";
+  }
+
+  const comp=competenciaDe(R.linhas,R.colunas)||competenciaDe(P.linhas,P.colunas);
+  PRONTO={tipo:"total",receitas:receitas,bonus:bonus,custos:custos,comp:comp};
+  pintarLeitura(file,a,{
+    receita:[receitas.length, receitas.reduce((s,x)=>s+(x.comissao_assessor||0),0)],
+    bonus:[bonus.length, bonus.reduce((s,x)=>s+x.incentivo,0)],
+    custo:[custos.length, custos.reduce((s,x)=>s+(x.comissao||0),0)],
+    comp:comp, alerta:aviso,
+    pe:(fora.barra?nf(fora.barra)+" linhas de barra excluída ficaram fora ("+brl(foraV)+"). ":"")+
+       (fora.sem?nf(fora.sem)+" linha(s) sem assessor entram como <b>(sem barra)</b>.":"")});
+}
+
+function linhaReceita(l, cols, barra){
+  const g=(...p)=>{ const c=achaCol(cols,...p); return c?l[c]:null; };
+  return {barra:barra||"(sem barra)",
+    cod_assessor:txt(g("COD SINACOR ASSESSOR")),
+    tipo_produto:txt(g("TIPO PRODUTO")), produto:txt(g("PRODUTO")),
+    sinacor_cliente:txt(g("COD SINACOR CLIENTE")), cpf_cnpj:txt(g("CPF")),
+    cliente:txt(g("CLIENTE")), data_receita:dataISO(g("DATA DE RECEITA")),
+    receita_genial:num(g("RECEITA GENIAL")), repasse_aai:txt(g("REPASSE AAI")),
+    repasse_assessor:txt(g("REPASSE ASSESSOR")), valor_bruto_aai:num(g("VALOR BRUTO AAI")),
+    imposto:num(g("IMPOSTO")), valor_liquido_aai:num(g("VALOR LIQUIDO","VALOR LÍQUIDO")),
+    comissao_assessor:num(g("COMISS"))||0, descricao:txt(g("DESCRICAO","DESCRIÇÃO"))};
+}
+
+/* A competência vem do arquivo, mas fica visível e trocável: reconhecer
+   sozinho é conveniência, não autoridade. */
+function pintarLeitura(file,a,d){
+  if(d.comp) el("mes").value=d.comp, COMP=d.comp+"-01";
+  const bloco=(rot,par,cor)=>par?'<div><div class="rot">'+rot+'</div>'+
+    '<div class="vl '+cor+'">'+brl(par[1])+'</div>'+
+    '<div style="font-size:11.5px;color:var(--fraco);margin-top:3px">'+nf(par[0])+' linhas</div></div>':"";
   a.innerHTML =
-    '<div class="faixa-num">'+
-      '<div><div class="rot">Receita AAI</div><div class="vl verde">'+brl(sr)+'</div>'+
-        '<div style="font-size:11.5px;color:var(--fraco);margin-top:3px">'+nf(receitas.length)+' linhas</div></div>'+
-      '<div><div class="rot">Bônus dos pontos</div><div class="vl verde">'+brl(sn)+'</div>'+
-        '<div style="font-size:11.5px;color:var(--fraco);margin-top:3px">'+nf(bonus.length)+' clientes</div></div>'+
+    (d.comp
+      ? nota('Competência reconhecida no arquivo: <b>'+mesNome(d.comp+"-01")+'</b>. '+
+             'Se estiver errada, troque no alto da tela antes de importar.',"v")
+      : nota("Não consegui achar o mês dentro do arquivo — vale o que está no alto da tela: "+
+             "<b>"+mesNome(COMP)+"</b>.","a"))+
+    (d.alerta?nota(d.alerta,"a"):"")+
+    '<div class="faixa-num" style="grid-template-columns:repeat('+
+      (1+(d.bonus[0]?1:0)+(d.custo?1:0))+',1fr)">'+
+      bloco("Receita AAI",d.receita,"verde")+
+      (d.bonus[0]?bloco("Bônus dos pontos",d.bonus,"verde"):"")+
+      (d.custo?bloco("Custo de plataforma",d.custo,"rubro"):"")+
     '</div>'+
     '<div style="padding:0 24px 18px;font-size:12.5px;color:var(--dim);line-height:1.7">'+
-      '<b>'+file.name+'</b><br>Fora da conta: '+nf(fora.custo)+' linhas de custo de plataforma (vêm do CRM), '+
-      fora.inc+' do incentivo agregado (entra pelos pontos)'+
-      (fora.barra?', e '+nf(fora.barra)+' linhas de barra excluída ('+brl(foraV)+', mais '+fora.aj+' de ajuste)'
-                 :' e '+fora.aj+' de ajuste')+'.'+
-      (fora.sem?' '+nf(fora.sem)+' linha(s) vieram sem assessor e entram como <b>(sem barra)</b>, '+
-        'para o valor não sumir.':'')+'</div>'+
+      '<b>'+file.name+'</b>'+(d.pe?'<br>'+d.pe:"")+'</div>'+
     '<div class="barra-ctrl">'+(PAPEL==="leitor"
       ? '<span style="font-size:12.5px;color:var(--ambar)">Seu acesso é de leitura — peça a um operador para importar.</span>'
       : '<button class="bt-f" id="btImp" onclick="enviar()">Importar em '+mesNome(COMP)+'</button>'+
@@ -1086,8 +1403,8 @@ async function enviar(){
   if(!PRONTO) return;
   const bt=el("btImp"), passo=el("passo"), bar=el("barraProg"), pre=bar.firstElementChild;
   bt.disabled=true; bar.style.display="block";
-  const nota=(t,c)=>'<div class="aviso'+(c?" "+c:"")+'" style="margin:0 24px 16px">'+t+'</div>';
   try{
+    /* ---- receita, em lotes, ativando só no fim ---- */
     passo.innerHTML=nota("Abrindo lote…");
     const a=await sb.rpc("abrir_lote",{p_competencia:COMP,p_origem:"receitas"});
     if(a.error) throw a.error;
@@ -1095,25 +1412,56 @@ async function enviar(){
     for(let i=0;i<tot;i+=TAM){
       const e=await sb.rpc("enviar_lote",{p_lote_id:a.data,p_linhas:PRONTO.receitas.slice(i,i+TAM)});
       if(e.error) throw e.error;
-      const f=Math.min(i+TAM,tot); pre.style.width=(f/tot*100)+"%";
+      const f=Math.min(i+TAM,tot); pre.style.width=(f/tot*70)+"%";
       passo.innerHTML=nota("Receita — "+nf(f)+" de "+nf(tot)+".");
     }
     passo.innerHTML=nota("Ativando o mês…");
     const at=await sb.rpc("ativar_lote",{p_lote_id:a.data}); if(at.error) throw at.error;
-    passo.innerHTML=nota("Bônus — buscando a barra de cada cliente…");
-    const rb=await sb.rpc("importar_bonus",{p_competencia:COMP,p_linhas:PRONTO.bonus});
-    if(rb.error) throw rb.error;
+
+    /* ---- custo, quando o arquivo traz ---- */
+    let rc=null;
+    if(PRONTO.custos && PRONTO.custos.length){
+      passo.innerHTML=nota("Custo de plataforma — "+nf(PRONTO.custos.length)+" linhas…");
+      pre.style.width="80%";
+      const r=await sb.rpc("importar_custos_mes",{p_competencia:COMP,p_linhas:PRONTO.custos});
+      if(r.error) throw r.error;
+      if(!r.data.ok) throw new Error(r.data.motivo||"custo recusado");
+      rc=r.data;
+    }
+
+    /* ---- bônus: com barra no arquivo, ou descoberta pelo nome ---- */
+    let rb=null;
+    if(PRONTO.bonus && PRONTO.bonus.length){
+      pre.style.width="90%";
+      const comBarra = PRONTO.bonus[0].barra != null;
+      passo.innerHTML=nota(comBarra ? "Bônus — a barra vem no arquivo…"
+                                    : "Bônus — buscando a barra de cada cliente…");
+      const r=await sb.rpc(comBarra?"importar_bonus_barra":"importar_bonus",
+        {p_competencia:COMP,p_linhas:PRONTO.bonus});
+      if(r.error) throw r.error;
+      rb=r.data;
+    }
+
     const t=(await sb.rpc("gerencial_totais",{p_competencia:COMP})).data;
     pre.style.width="100%";
     passo.innerHTML =
-      nota("<b>Importado.</b> "+nf(at.data.linhas)+" linhas de receita e "+nf(rb.data.linhas)+" de bônus.","v")+
-      (rb.data.sem_barra?nota(nf(rb.data.sem_barra)+" clientes do bônus ficaram sem barra: o nome não "+
+      nota("<b>Importado.</b> "+nf(at.data.linhas)+" linhas de receita"+
+        (rc?", "+nf(rc.gravadas)+" de custo":"")+
+        (rb?", "+nf(rb.linhas)+" de bônus":"")+".","v")+
+      (rc&&rc.somadas?nota(nf(rc.somadas)+" linhas de custo eram do mesmo cliente e produto no mês, "+
+        "e foram <b>somadas</b>. No caminho antigo elas eram descartadas.","a"):"")+
+      (rb&&rb.sem_barra?nota(nf(rb.sem_barra)+" clientes do bônus ficaram sem barra: o nome não "+
         "bateu com o cadastro. Não entram em barra nenhuma até serem resolvidos.","a"):"")+
       ((!t||Number(t.custos)===0)?nota("<b>Sem custo de plataforma neste mês.</b> O valor a pagar "+
-        "está inflado. Suba o arquivo de custos pelo CRM antes de pagar.","r"):"")+
+        "está inflado. Suba a planilha mensal ou o arquivo de custos pelo CRM.","r"):"")+
+      (t?'<div class="faixa-num" style="grid-template-columns:repeat(3,1fr);margin-top:4px">'+
+        '<div><div class="rot">Receita AAI</div><div class="vl verde">'+brl(t.receita_aai)+'</div></div>'+
+        '<div><div class="rot">Custo</div><div class="vl rubro">'+brl(t.custos)+'</div></div>'+
+        '<div><div class="rot">A pagar</div><div class="vl verde">'+brl(t.a_pagar)+'</div></div></div>':"")+
       '<div class="barra-ctrl"><button class="bt-f" onclick="ir(\'resumo\')">Ver o fechamento de '+
-        mesNome(COMP)+'</button></div>';
+        mesNome(COMP)+'</button><button class="bt" onclick="ir(\'importar\')">Importar outro mês</button></div>';
     tor("Importado",mesNome(COMP));
+    PRONTO=null;
   }catch(err){
     passo.innerHTML=nota("<b>Não importou.</b> "+(err.message||err)+
       "<br>Nada foi ativado — o mês anterior continua valendo.","r");
