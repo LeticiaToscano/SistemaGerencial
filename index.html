@@ -148,14 +148,21 @@ button{font-family:inherit;cursor:pointer}
 
 /* --------- tabela --------- */
 .rola{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
+/* largura fixa por coluna: a tabela se ajusta ao espaço em vez de empurrar
+   o cartão. Sem isso, doze colunas de número esticam além da tela. */
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+table.barras col.c-barra{width:19%}
+table.barras col.c-parc{width:17%}
+table.barras col.c-min{width:6%}
+table.barras col.c-num{width:7.5%}
+table.barras col.c-bt{width:8%}
 th{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--fraco);font-weight:700;
   text-align:left;padding:11px 10px;border-bottom:1px solid var(--linha);white-space:nowrap}
 th:first-child,td:first-child{padding-left:20px}
 th:last-child,td:last-child{padding-right:20px}
 th.g{text-align:center;border-left:1px solid var(--linha2);color:var(--dim)}
 td{padding:11px 10px;border-bottom:1px solid rgba(255,255,255,.035);font-size:12.5px;white-space:nowrap}
-td.corta{max-width:190px;overflow:hidden;text-overflow:ellipsis}
+td.corta,.corta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 td.s{border-left:1px solid var(--linha2)}
 tbody tr:hover{background:rgba(255,255,255,.022)}
 tbody tr:last-child td{border-bottom:none}
@@ -451,7 +458,7 @@ const IC={tela:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stro
 /* =====================================================================
    FECHAMENTO — o mês inteiro como extrato, e as barras logo abaixo
    ===================================================================== */
-let LINHAS=[], ORDEM="pagar_bonus", BUSCA="", SO_NEG=false, ABRIU=false;
+let LINHAS=[], ORDEM="pagar_bonus", BUSCA="", SO_NEG=false, TODAS=false;
 
 async function vResumo(){
   const r=await sb.from("vw_gerencial_resumo").select("*").eq("competencia",COMP);
@@ -532,18 +539,27 @@ function secBarras(){
         '</button>').join("")+
       '<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--dim);margin-left:4px">'+
         '<input type="checkbox" '+(SO_NEG?"checked":"")+' onchange="SO_NEG=this.checked;pintarResumo()"> só as negativas</label>'+
-      '<input class="ent" placeholder="Buscar barra ou parceiro…" value="'+BUSCA+'" '+
-        'oninput="BUSCA=this.value;pintarResumo()" style="margin-left:auto;flex:0 0 230px">'+
+      '<select class="ent sel" onchange="BUSCA=this.value;pintarResumo()" '+
+        'style="margin-left:auto;flex:0 0 290px">'+
+        '<option value="">Todas as barras</option>'+
+        LINHAS.slice().sort(function(a,b){
+          return String(a.barra).localeCompare(String(b.barra),"pt-BR"); })
+        .map(function(x){ return '<option value="'+x.barra+'" '+(BUSCA===x.barra?"selected":"")+'>'+
+          x.barra+(x.parceiro?" — "+x.parceiro:"")+'</option>'; }).join("")+
+      '</select>'+
       '<button class="bt" onclick="baixarResumo()">Exportar</button>'+
     '</div>'+
-    '<div class="rola">'+tabela(l)+'</div></div>';
+    '<div class="rola">'+tabela(TODAS||BUSCA?l:l.slice(0,10))+'</div>'+
+    (!BUSCA&&l.length>10
+      ? '<div class="sec-pe" onclick="TODAS=!TODAS;pintarResumo()">'+
+          (TODAS?"Mostrar só as 10 primeiras ⌃":"Ver todas as "+nf(l.length)+" barras ⌄")+'</div>'
+      : "")+
+    '</div>';
 }
 
 function filtradas(){
   let l=LINHAS.slice();
-  if(BUSCA){ const t=BUSCA.toLowerCase();
-    l=l.filter(x=>String(x.barra||"").toLowerCase().includes(t)||
-                  String(x.parceiro||"").toLowerCase().includes(t)); }
+  if(BUSCA) l=l.filter(x=>x.barra===BUSCA);
   if(SO_NEG) l=l.filter(x=>Number(x.pagar_bonus)<0);
   l.sort((a,b)=>ORDEM==="barra"
     ? String(a.barra).localeCompare(String(b.barra),"pt-BR")
@@ -552,8 +568,14 @@ function filtradas(){
 }
 
 function tabela(l){
-  const t=c=>soma(l,c);
-  return '<table><thead><tr>'+
+  /* o rodapé soma o mês inteiro, não só as linhas à mostra: total que muda
+     conforme a lista abre ou fecha não é total, é armadilha */
+  const base=filtradas(), t=c=>soma(base,c);
+  return '<table class="barras">'+
+    '<colgroup><col class="c-barra"><col class="c-parc"><col class="c-min"><col class="c-num">'+
+    '<col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num">'+
+    '<col class="c-min"><col class="c-num"><col class="c-bt"></colgroup>'+
+    '<thead><tr>'+
     '<th>Barra</th><th>Parceiro</th><th class="n">Novos</th><th class="n">Contratos</th>'+
     '<th class="n">Zeragens</th><th class="n">Receita AAI</th><th class="n">Bônus</th>'+
     '<th class="n">Custos</th><th class="n s">Líquido</th><th class="n">%</th>'+
@@ -561,9 +583,10 @@ function tabela(l){
     l.map(function(x,i){
       const neg=Number(x.pagar_bonus)<0;
       return '<tr onclick="editar('+i+')" style="cursor:pointer">'+
-        '<td><div class="nome"><span class="ini">'+ini(x.barra)+'</span>'+x.barra+
-          (x.editado?' <span class="et et-a" title="'+(x.campos_ajustados||"")+'">editado</span>':"")+
-          (x.status_pagamento==="pago"?' <span class="et et-v">pago</span>':"")+'</div></td>'+
+        '<td title="'+x.barra+'"><div class="nome"><span class="ini">'+ini(x.barra)+'</span>'+
+          '<span class="corta" style="max-width:100%">'+x.barra+'</span>'+
+          (x.editado?'<span class="et et-a" title="'+(x.campos_ajustados||"")+'">editado</span>':"")+
+          (x.status_pagamento==="pago"?'<span class="et et-v">pago</span>':"")+'</div></td>'+
         '<td class="d corta" title="'+(x.parceiro||"")+'">'+
           (x.parceiro||'<span class="et et-o">sem parceiro</span>')+'</td>'+
         '<td class="n f">'+(Number(x.novos_clientes)||"—")+'</td>'+
@@ -578,7 +601,7 @@ function tabela(l){
         '<td class="n"><button class="bt" style="padding:5px 10px;font-size:11.5px" '+
           'onclick="event.stopPropagation();editar('+i+')">editar</button></td></tr>';
     }).join("")+
-    '</tbody><tfoot><tr><td>'+nf(l.length)+' barras</td><td></td>'+
+    '</tbody><tfoot><tr><td>'+nf(base.length)+' barras</td><td></td>'+
       '<td class="n">'+nf(t("novos_clientes"))+'</td><td class="n">'+nf(t("contratos"))+'</td>'+
       '<td class="n">'+nf(t("zeragens"))+'</td><td class="n">'+vl(t("receita_aai"))+'</td>'+
       '<td class="n">'+vl(t("bonus"))+'</td><td class="n rubro">'+vl(t("custos_plataforma"))+'</td>'+
@@ -826,7 +849,7 @@ async function verBarra(b){
         quadro("Melhor mês",t.melhor_mes||"—","pior: "+(t.pior_mes||"—"),"azul")+
       '</div></div>'+
     '<div class="cx sec">'+
-      secTopo(IC.torta,"v","Quanto recebeu por mês","a variação é contra o mês anterior")+
+      secTopo(IC.torta,"v","Quanto recebeu por mês","a variação é contra o mês anterior",'<span class="chip">valores em <b>R$</b></span>')+
       '<div class="col">'+m.map(x=>{ const v=Number(x.a_pagar)||0;
         return '<div class="col-c"><div class="col-v">'+brl(v)+'</div>'+
           '<div class="col-b"><span style="height:'+Math.max(5,Math.round(100*Math.abs(v)/max))+'%'+
@@ -843,11 +866,11 @@ async function verBarra(b){
       m.map(x=>'<tr><td style="font-weight:600">'+mesNome(x.competencia)+'</td>'+
         '<td class="n f">'+(Number(x.novos_clientes)||"—")+'</td>'+
         '<td class="n">'+(Number(x.contratos)?nf(x.contratos):"—")+'</td>'+
-        '<td class="n">'+brl0(x.receita_aai)+'</td><td class="n">'+brl0(x.bonus)+'</td>'+
-        '<td class="n rubro">'+brl0(x.custos_plataforma)+'</td>'+
-        '<td class="n d">'+brl0(x.liquido)+'</td>'+
-        '<td class="n s" style="font-weight:800">'+brl0(x.a_pagar)+'</td>'+
-        '<td class="n f">'+brl(x.a_pagar_acumulado)+'</td>'+
+        '<td class="n">'+vl(x.receita_aai)+'</td><td class="n">'+vl(x.bonus)+'</td>'+
+        '<td class="n rubro">'+vl(x.custos_plataforma)+'</td>'+
+        '<td class="n d">'+vl(x.liquido)+'</td>'+
+        '<td class="n s" style="font-weight:800">'+vl(x.a_pagar)+'</td>'+
+        '<td class="n f">'+vl(x.a_pagar_acumulado)+'</td>'+
         '<td><span class="et '+(x.status_pagamento==="pago"?"et-v":"et-o")+'">'+
           (x.status_pagamento||"aberto")+'</span></td></tr>').join("")+
       '</tbody></table></div></div>';
@@ -896,7 +919,7 @@ async function vCasa(){
             '<div class="v">'+brl(cas)+'</div></div></div>'+
         '</div></div></div>'+
     '<div class="cx sec">'+
-      secTopo(IC.casa,"","Mês a mês","repasse aos parceiros ao longo do ano")+
+      secTopo(IC.casa,"","Mês a mês","repasse aos parceiros ao longo do ano",'<span class="chip">valores em <b>R$</b></span>')+
       '<div class="col">'+m.map(x=>'<div class="col-c">'+
         '<div class="col-v">'+brl(x.a_pagar_parceiros)+'</div>'+
         '<div class="col-b"><span style="height:'+
@@ -908,11 +931,11 @@ async function vCasa(){
         '<th class="n">Líquido</th><th class="n s">Parceiros</th><th class="n">Fica na casa</th>'+
         '<th class="n">Negativas</th></tr></thead><tbody>'+
       m.slice().reverse().map(x=>'<tr><td style="font-weight:600">'+mesNome(x.competencia)+'</td>'+
-        '<td class="n">'+nf(x.contratos)+'</td><td class="n">'+brl0(x.receita_aai)+'</td>'+
-        '<td class="n">'+brl0(x.bonus)+'</td><td class="n rubro">'+brl0(x.custos)+'</td>'+
-        '<td class="n d">'+brl0(x.liquido)+'</td>'+
-        '<td class="n s">'+brl0(x.a_pagar_parceiros)+'</td>'+
-        '<td class="n verde" style="font-weight:800">'+brl0(x.fica_na_casa)+'</td>'+
+        '<td class="n">'+nf(x.contratos)+'</td><td class="n">'+vl(x.receita_aai)+'</td>'+
+        '<td class="n">'+vl(x.bonus)+'</td><td class="n rubro">'+vl(x.custos)+'</td>'+
+        '<td class="n d">'+vl(x.liquido)+'</td>'+
+        '<td class="n s">'+vl(x.a_pagar_parceiros)+'</td>'+
+        '<td class="n verde" style="font-weight:800">'+vl(x.fica_na_casa)+'</td>'+
         '<td class="n f">'+nf(x.barras_negativas)+'</td></tr>').join("")+
       '</tbody></table></div>'+
       '<div class="sec-pe" style="cursor:default;font-weight:400;font-size:12px;color:var(--fraco)">'+
