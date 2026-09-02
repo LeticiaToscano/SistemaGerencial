@@ -263,7 +263,7 @@ const DESCARTAR = ['incentivo - faixas traders',
 function verProducao(file, wb, abas, cartao){
   const abaData = abas.find(a => a.toLowerCase()==='data');
   const abaFx   = abas.find(a => a.toUpperCase().indexOf('FAIXAS') >= 0);
-  const receitas = [], fora = {custo:0, incentivo:0, fernando:0, barra:0};
+  const receitas = [], fora = {custo:0, incentivo:0, fernando:0, barra:0, semBarra:0};
   let foraValor = 0;
   for(const l of linhasDe(wb, abaData, 1)){
     const tipo = txt(l['TIPO PRODUTO']) || '';
@@ -273,8 +273,10 @@ function verProducao(file, wb, abas, cartao){
     if(desc === DESCARTAR[1]){ fora.fernando++; continue; }
     if(FORA.has(chaveBarra(l['ASSESSOR']))){
       fora.barra++; foraValor += num(l['COMISSÃO ASSESSOR'])||0; continue; }
+    const barraLinha = txt(l['ASSESSOR']);
+    if(!barraLinha) fora.semBarra++;
     receitas.push({
-      barra: txt(l['ASSESSOR']), cod_assessor: txt(l['COD SINACOR ASSESSOR']),
+      barra: barraLinha || '(sem barra)', cod_assessor: txt(l['COD SINACOR ASSESSOR']),
       tipo_produto: tipo||null, produto: txt(l['PRODUTO']),
       sinacor_cliente: txt(l['COD SINACOR CLIENTE']), cpf_cnpj: txt(l['CPF/CNPJ']),
       cliente: txt(l['CLIENTE']), data_receita: dataISO(l['DATA DE RECEITA']),
@@ -307,7 +309,9 @@ function verProducao(file, wb, abas, cartao){
       fora.incentivo+' do incentivo agregado (entra pelos pontos)'+
       (fora.barra ? ', e '+int(fora.barra)+' linhas de barra excluída do gerencial ('+
         brl(foraValor)+', mais '+fora.fernando+' de ajuste)' :
-        ' e '+fora.fernando+' de ajuste')+'.</p>'+
+        ' e '+fora.fernando+' de ajuste')+'.'+
+      (fora.semBarra ? ' '+int(fora.semBarra)+' linha(s) vieram sem assessor no arquivo e '+
+        'entram como <b>(sem barra)</b>, para o valor não sumir.' : '')+'</p>'+
     '<div class="acoes"><button>Importar em <span class="mesbt"></span></button></div>'+
     '<div class="progresso esconde"><div></div></div><div class="passo"></div>';
   const bt = cartao.querySelector('.acoes button');
