@@ -1029,8 +1029,9 @@ function grafico(pontos, alt){
    ===================================================================== */
 let BARRA=null;
 async function vParceiro(){
-  const r=await sb.from("vw_gerencial_resumo").select("barra,parceiro,pagar_bonus")
-    .eq("competencia",COMP).order("pagar_bonus",{ascending:false});
+  /* a lista do seletor vem de uma view leve: montar o menu não precisa
+     recalcular o fechamento do mês inteiro */
+  const r=await sb.from("vw_gerencial_barras").select("barra,parceiro").order("barra");
   if(r.error) return falha(r.error);
   el("alvo").innerHTML =
     '<div class="cx sec aberta" style="margin-bottom:16px">'+
