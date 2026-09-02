@@ -305,21 +305,26 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    viravam duas lajes e a leitura sumia. Aqui a forma é a curva, o zero é
    um eixo de verdade, e a linha se desenha ao entrar — uma vez só.
    --------------------------------------------------------------------- */
-.gr{position:relative;padding:16px 24px 6px}
+.gr{position:relative;padding:26px 24px 6px}
 .gr-tela{position:relative;width:100%}
 .gr-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .gr-grade{stroke:rgba(255,255,255,.05);stroke-width:1}
 .gr-zero{stroke:rgba(255,255,255,.22);stroke-width:1;stroke-dasharray:4 4}
 .gr-area{opacity:0;animation:grA .8s ease .35s forwards}
-.gr-linha{fill:none;stroke-width:2.5;vector-effect:non-scaling-stroke;stroke-linecap:round;
+.gr-linha{fill:none;stroke-width:2.75;vector-effect:non-scaling-stroke;stroke-linecap:round;
+  filter:drop-shadow(0 3px 10px rgba(46,229,157,.35));
   stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:grL 1.1s cubic-bezier(.4,.1,.3,1) forwards}
 @keyframes grA{to{opacity:1}}
 @keyframes grL{to{stroke-dashoffset:0}}
 .gr-pt{opacity:0;animation:grP .35s ease forwards}
 @keyframes grP{to{opacity:1}}
-.gr-rot{position:absolute;transform:translate(-50%,-50%);font-size:11.5px;font-weight:700;
-  white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:none;
-  opacity:0;animation:grP .4s ease forwards}
+.gr-rot{position:absolute;font-size:11.5px;font-weight:700;white-space:nowrap;
+  font-variant-numeric:tabular-nums;pointer-events:none;opacity:0;
+  animation:grP .4s ease forwards;transform:translate(-50%,-50%)}
+.gr-rot.ini{transform:translate(0,-50%)}      /* o primeiro alinha pela esquerda */
+.gr-rot.fim{transform:translate(-100%,-50%)}  /* e o último pela direita, senão corta */
+.gr-yeixo{position:absolute;left:24px;font-size:10px;color:var(--fraco);
+  font-variant-numeric:tabular-nums;transform:translateY(-50%);pointer-events:none}
 .gr-eixo{display:flex;margin-top:10px}
 .gr-eixo>div{flex:1;text-align:center;min-width:0}
 .gr-mes{font-size:11px;color:var(--dim)}
@@ -933,8 +938,8 @@ function grafico(pontos, alt){
   if(min > 0) min = 0;            // se tudo é positivo, o zero é o chão
   if(max < 0) max = 0;            // se tudo é negativo, o zero é o teto
 
-  const W = 1000, H = alt;
-  const px = i => n === 1 ? W/2 : (i/(n-1))*W;
+  const W = 1000, H = alt, M = n > 1 ? 48 : 0;   // margem lateral: ponto colado na
+  const px = i => n === 1 ? W/2 : M + (i/(n-1))*(W-2*M);  // borda tem o rótulo cortado
   const py = y => H - ((y - min)/(max - min))*H;
   const yZero = py(0);
   const temNeg = v.some(x=>x<0);
@@ -969,16 +974,16 @@ function grafico(pontos, alt){
      sai deformado */
   const rotulos = pts.map(function(p,i){
     const neg = v[i] < 0;
-    const cima = !neg;
-    return '<div class="gr-rot" style="left:'+(p[0]/W*100).toFixed(2)+'%;'+
-      'top:'+((p[1] + (cima?-20:20))/H*100).toFixed(2)+'%;'+
+    const borda = n > 1 ? (i === 0 ? " ini" : i === n-1 ? " fim" : "") : "";
+    return '<div class="gr-rot'+borda+'" style="left:'+(p[0]/W*100).toFixed(2)+'%;'+
+      'top:'+((p[1] + (neg?22:-22))/H*100).toFixed(2)+'%;'+
       'color:'+(neg?"var(--vermelho)":"var(--txt)")+';'+
       'animation-delay:'+(0.6+i*0.08).toFixed(2)+'s">'+pontos[i].rotulo+'</div>';
   }).join("");
 
   const areas = pontos.map(function(p,i){
-    const l = n===1 ? 0 : (i===0?0:(px(i)+px(i-1))/2/W*100);
-    const r = n===1 ? 100 : (i===n-1?100:(px(i)+px(i+1))/2/W*100);
+    const l = n===1 ? 0 : (i===0?0:((px(i)+px(i-1))/2/W*100));
+    const r = n===1 ? 100 : (i===n-1?100:((px(i)+px(i+1))/2/W*100));
     return '<div class="gr-fantasma" title="'+(p.dica||"")+'" style="left:'+l.toFixed(2)+'%;'+
       'width:'+(r-l).toFixed(2)+'%"></div>';
   }).join("");
@@ -1008,6 +1013,8 @@ function grafico(pontos, alt){
         pontinhos+
       '</svg>'+
       rotulos+
+      '<div class="gr-yeixo" style="top:'+(py(max-folga)/H*100).toFixed(2)+'%">'+
+        brl(max-folga)+'</div>'+
       (temNeg?'<div class="gr-zrot" style="top:'+(yZero/H*100).toFixed(2)+'%">ZERO</div>':'')+
       areas+
     '</div>'+
@@ -1226,8 +1233,14 @@ function lerAba(wb, aba, chaves){
   }
   return {colunas:cab, linhas:linhas};
 }
-/* devolve o nome da coluna que contém qualquer um dos pedaços */
+/* Acha a coluna pelo nome. O nome EXATO vem primeiro, e só depois o que
+   contém o pedaço — senão "ASSESSOR" casa com "COD SINACOR ASSESSOR",
+   que vem antes na planilha, e a barra vira o código numérico. Foi
+   exatamente isso que quebrou a carga de janeiro a junho. */
 function achaCol(cols, ...pedacos){
+  for(const p of pedacos){ const c=cols.find(x=>x===p); if(c) return c; }
+  for(const p of pedacos){
+    const c=cols.find(x=>x&&x.indexOf(p)>=0&&x.indexOf("COD ")<0); if(c) return c; }
   for(const p of pedacos){ const c=cols.find(x=>x&&x.indexOf(p)>=0); if(c) return c; }
   return null;
 }
