@@ -1282,7 +1282,8 @@ function vImportar(){
         '<span>ou clique para escolher · .xlsx</span></div>'+
       '<input type="file" id="arq" accept=".xlsx,.xls" hidden>'+
       '<div id="leitura"></div></div>'+
-    '<div class="cx sec" id="jaEntrou"></div>';
+    '<div class="cx sec" id="jaEntrou"></div>'+
+    '<div id="estadoVolume"></div>';
   const d=el("solta"), i=el("arq");
   d.onclick=()=>i.click();
   d.ondragover=e=>{e.preventDefault();d.classList.add("sob");};
@@ -1291,6 +1292,33 @@ function vImportar(){
     if(e.dataTransfer.files[0]) ler(e.dataTransfer.files[0]);};
   i.onchange=()=>{ if(i.files[0]) ler(i.files[0]); };
   mesesCarregados();
+  estadoVolume();
+}
+
+/* O volume fica pré-somado para a tela responder rápido, e é atualizado
+   por um agendamento diário. No intervalo entre a importação e a
+   atualização, a tela avisa em vez de mostrar número velho calado. */
+async function estadoVolume(){
+  const alvo=el("estadoVolume"); if(!alvo) return;
+  const r=await sb.from("vw_gerencial_volume").select("*").limit(1);
+  if(r.error||!r.data||!r.data.length){ alvo.innerHTML=""; return; }
+  const v=r.data[0];
+  const quando=v.atualizado_em?new Date(v.atualizado_em).toLocaleString("pt-BR"):"nunca";
+  alvo.innerHTML = v.desatualizado
+    ? '<div class="aviso a"><b>O volume mudou depois da última atualização.</b> '+
+      'Os contratos e a zeragem podem estar de ontem — a atualização automática roda todo dia '+
+      'às 20h40. Última: '+quando+'.'+(PAPEL!=="leitor"
+        ? ' <button class="bt" style="margin-left:8px" onclick="atualizarVolume(this)">Atualizar agora</button>':'')+
+      '</div>'
+    : '<div class="aviso v">Volume em dia · última atualização em '+quando+'.</div>';
+}
+async function atualizarVolume(bt){
+  bt.disabled=true; bt.textContent="Atualizando…";
+  const r=await sb.rpc("atualizar_volume_gerencial");
+  if(r.error){ tor("Não atualizou",r.error.message,true); bt.disabled=false;
+    bt.textContent="Atualizar agora"; return; }
+  tor("Volume atualizado","contratos e zeragem refeitos");
+  estadoVolume();
 }
 
 /* O que já entrou, mês a mês. Sem isso não dá para saber o que falta
