@@ -411,7 +411,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v03/09 01:20";
+const VERSAO = "v14/09 10:10";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -1432,13 +1432,24 @@ function lerTotal(file, wb, abas, a){
 
   const pAss=achaCol(P.colunas,"ASSESSOR"), pCom=achaCol(P.colunas,"COMISS"),
         pDes=achaCol(P.colunas,"DESCRICAO","DESCRIÇÃO","PRODUTO"),
-        pSin=achaCol(P.colunas,"SEM DIGITO","S/ DIGITO")||achaCol(P.colunas,"COD SINACOR CLIENTE"),
         pCpf=achaCol(P.colunas,"CPF"), pNom=achaCol(P.colunas,"CLIENTE"),
         pTip=achaCol(P.colunas,"TIPO PRODUTO"), pRec=achaCol(P.colunas,"RECEITA GENIAL"),
         pLiq=achaCol(P.colunas,"VALOR LIQUIDO","VALOR LÍQUIDO");
+  /* As duas colunas de conta existem, mas nem sempre as duas vêm
+     preenchidas: em agosto a "sem dígito" só tinha valor nas linhas de
+     parceria, e usar só ela descartava 5.259 das 5.516 linhas. Vale a
+     que tiver valor na linha — se for a com dígito, tira-se o último. */
+  const pSem=achaCol(P.colunas,"SEM DIGITO","S/ DIGITO");
+  const pCom2=achaCol(P.colunas,"COD SINACOR CLIENTE");
+  const conta=l=>{
+    let s=String(pSem&&l[pSem]!=null?l[pSem]:"").replace(/\D/g,"");
+    if(s) return s;
+    s=String(pCom2&&l[pCom2]!=null?l[pCom2]:"").replace(/\D/g,"");
+    return s.length>1 ? s.slice(0,-1) : s;
+  };
   const custos=[];
   for(const l of P.linhas){
-    const s=String(l[pSin]==null?"":l[pSin]).replace(/\D/g,"");
+    const s=conta(l);
     const d=txt(l[pDes]); if(!s||!d) continue;
     custos.push({sinacor:s, descricao:d, cpf:txt(l[pCpf]), nome:txt(l[pNom]),
       barra:txt(l[pAss]), tipo_produto:txt(l[pTip]), produto:txt(l[pDes]),
