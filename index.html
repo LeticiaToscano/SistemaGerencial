@@ -411,7 +411,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v14/09 10:10";
+const VERSAO = "v14/09 20:40";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -1447,10 +1447,22 @@ function lerTotal(file, wb, abas, a){
     s=String(pCom2&&l[pCom2]!=null?l[pCom2]:"").replace(/\D/g,"");
     return s.length>1 ? s.slice(0,-1) : s;
   };
-  const custos=[];
+  /* Algumas cobranças não são de cliente nenhum: são feitas direto na
+     barra e vêm com a conta em branco (um OneClick de gestor, um Profit
+     cobrado na própria barra). Como a tabela de custos usa a conta como
+     parte da chave, essas linhas ficavam de fora e o total do sistema
+     não batia com o do arquivo. Aqui elas passam a ser identificadas
+     pela barra — que é justamente quem está pagando. */
+  const chaveDaBarra = b => "BARRA" + chaveBarra(b).slice(0, 24);
+  const custos=[]; let naBarra=0;
   for(const l of P.linhas){
-    const s=conta(l);
-    const d=txt(l[pDes]); if(!s||!d) continue;
+    const d=txt(l[pDes]); if(!d) continue;
+    let s=conta(l);
+    if(!s){
+      const b2=txt(l[pAss]);
+      if(!b2) continue;           // sem conta e sem barra não há onde lançar
+      s=chaveDaBarra(b2); naBarra++;
+    }
     custos.push({sinacor:s, descricao:d, cpf:txt(l[pCpf]), nome:txt(l[pNom]),
       barra:txt(l[pAss]), tipo_produto:txt(l[pTip]), produto:txt(l[pDes]),
       receita_genial:num(l[pRec]), valor_liquido:num(l[pLiq]), comissao:num(l[pCom])||0});
@@ -1486,7 +1498,9 @@ function lerTotal(file, wb, abas, a){
     custo:[custos.length, custos.reduce((s,x)=>s+(x.comissao||0),0)],
     comp:comp, alerta:aviso,
     pe:(fora.barra?nf(fora.barra)+" linhas de barra excluída ficaram fora ("+brl(foraV)+"). ":"")+
-       (fora.sem?nf(fora.sem)+" linha(s) sem assessor entram como <b>(sem barra)</b>.":"")});
+       (fora.sem?nf(fora.sem)+" linha(s) sem assessor entram como <b>(sem barra)</b>. ":"")+
+       (naBarra?nf(naBarra)+" cobrança(s) de plataforma vieram sem cliente e foram lançadas "+
+        "<b>na própria barra</b>.":"")});
 }
 
 function linhaReceita(l, cols, barra){
