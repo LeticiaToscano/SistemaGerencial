@@ -412,7 +412,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v21/09 MFA";
+const VERSAO = "v21/09 MFA-2";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -480,13 +480,17 @@ function pedirCodigo(factorId, novo){
   const bx=el("mfaBox"); bx.classList.remove("esc");
   bx.innerHTML=(novo
     ? '<p style="margin-top:6px"><b>Primeiro acesso com código.</b> Abra o Google Authenticator ou o Microsoft Authenticator no celular, toque em adicionar e escaneie o QR code.</p>'+
-      '<div style="background:#fff;border-radius:12px;padding:12px;width:fit-content;margin:14px auto"><img src="'+novo.qr_code+'" alt="QR code" style="width:180px;height:180px;display:block"></div>'+
+      '<div style="background:#fff;border-radius:12px;padding:12px;width:fit-content;margin:14px auto"><img id="mfaQr" alt="QR code" style="width:180px;height:180px;display:block"></div>'+
       '<p style="font-size:11px;color:var(--dim);word-break:break-all">Sem câmera? Digite esta chave no aplicativo: <b>'+novo.secret+'</b></p>'
     : '<p style="margin-top:6px">Digite o código de 6 dígitos que aparece no aplicativo do seu celular.</p>')+
     '<label>Código</label><input id="mfaCod" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="letter-spacing:8px;text-align:center;font-size:20px">'+
     '<button class="bt-f" id="mfaOk" type="button">Confirmar</button>'+
     '<div class="err" id="mfaErro"></div>'+
     '<button class="pil bt" id="mfaSair" type="button" style="margin-top:12px">Voltar</button>';
+  if(novo){  // o Supabase pode devolver o QR como SVG puro ou como data URI
+    const q=String(novo.qr_code||"");
+    el("mfaQr").src=q.trim().startsWith("<") ? "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(q) : q;
+  }
   const i=el("mfaCod"); i.focus();
   i.addEventListener("input",()=>{ i.value=i.value.replace(/\D/g,"").slice(0,6); });
   const enviar=async()=>{
