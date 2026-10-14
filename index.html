@@ -151,8 +151,9 @@ button{font-family:inherit;cursor:pointer}
 /* largura fixa por coluna: a tabela se ajusta ao espaço em vez de empurrar
    o cartão. Sem isso, doze colunas de número esticam além da tela. */
 table{width:100%;border-collapse:collapse;table-layout:fixed}
-table.barras col.c-barra{width:19%}
-table.barras col.c-parc{width:17%}
+table.barras col.c-barra{width:15%}
+table.barras col.c-parc{width:13%}
+table.barras col.c-mod{width:8%}
 table.barras col.c-min{width:6%}
 table.barras col.c-num{width:7.5%}
 table.barras col.c-bt{width:8%}
@@ -412,7 +413,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v14/10 importar-5";
+const VERSAO = "v14/10 modelo-1";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -625,7 +626,7 @@ const IC={tela:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stro
 /* =====================================================================
    FECHAMENTO — o mês inteiro como extrato, e as barras logo abaixo
    ===================================================================== */
-let LINHAS=[], ORDEM="pagar_bonus", BUSCA="", SO_NEG=false, TODAS=false;
+let LINHAS=[], ORDEM="a_pagar", BUSCA="", SO_NEG=false, TODAS=false;
 
 async function vResumo(){
   const r=await sb.from("vw_gerencial_resumo").select("*").eq("competencia",COMP);
@@ -644,12 +645,15 @@ async function vResumo(){
 function pintarResumo(){
   const L=LINHAS;
   const rec=soma(L,"receita_aai"), bon=soma(L,"bonus"), cus=soma(L,"custos_plataforma");
-  const rmp=soma(L,"rmp_bonus"), liq=soma(L,"liquido_bonus"), pag=soma(L,"pagar_bonus");
+  const bonN=soma(L.filter(x=>x.cenario==="bonus"),"extra_modelo"),
+        ctrA=soma(L.filter(x=>x.cenario!=="bonus"),"extra_modelo"),
+        nAnt=L.filter(x=>x.modelo==="antigo").length;
+  const rmp=soma(L,"receita_menos_plataformas"), liq=soma(L,"liquido"), pag=soma(L,"a_pagar");
   const imp=rmp-liq, casa=liq-pag;
   const ctr=soma(L,"contratos"), zer=soma(L,"zeragens");
   const alt=(L[0]||{}).imposto_pct;
-  const neg=L.filter(x=>Number(x.pagar_bonus)<0).length;
-  const semP=L.filter(x=>!x.parceiro&&Number(x.pagar_bonus)!==0).length;
+  const neg=L.filter(x=>Number(x.a_pagar)<0).length;
+  const semP=L.filter(x=>!x.parceiro&&Number(x.a_pagar)!==0).length;
   const semCusto=cus===0;
   const pagos=L.filter(x=>x.status_pagamento==="pago");
 
@@ -662,6 +666,7 @@ function pintarResumo(){
       '<div class="cx cx-luz ident"><div class="rot">Competência</div>'+
         '<div class="gr">'+mesNome(COMP).replace(" de "," <em>de</em> ")+'</div>'+
         '<div class="pe">'+nf(L.length)+' barras no fechamento · <b>'+nf(pagos.length)+'</b> já pagas'+
+          (nAnt?' · <b>'+nf(nAnt)+'</b> no modelo antigo':'')+
           (neg?' · <b class="rubro">'+nf(neg)+'</b> negativas':'')+'</div></div>'+
       '<div class="cx quad">'+
         quadro("Contratos no mês",nf(ctr),"BM&F, DMA","azul")+
@@ -677,7 +682,8 @@ function pintarResumo(){
           'Do mesmo líquido, <b>'+brl(casa)+'</b> ficam na casa.</div></div>'+
       '<div class="extrato">'+
         linhaEx("%","pc","Receita AAI",rec)+
-        linhaEx("+","ma","Bônus das faixas",bon)+
+        linhaEx("+","ma","Bônus das faixas"+(nAnt?" (modelo novo)":""),bonN)+
+        (nAnt?linhaEx("+","ma","R$ 0,03 por contrato ("+nf(nAnt)+" no modelo antigo)",ctrA):"")+
         linhaEx("−","me","Custo de plataforma",cus)+
         linhaEx("=","ig","Receita − plataformas",rmp," total")+
         linhaEx("−","me","Imposto ("+pct(alt)+")",-imp)+
@@ -699,10 +705,10 @@ function secBarras(){
       '<span class="chip"><b>'+nf(LINHAS.length)+'</b> barras</span>'+
       '<span class="chip"><b>'+nf(LINHAS.filter(x=>x.editado).length)+'</b> editadas</span>')+
     '<div class="barra-ctrl">'+
-      ['pagar_bonus','receita_aai','contratos','barra'].map(k=>
+      ['a_pagar','receita_aai','contratos','barra'].map(k=>
         '<button class="bt" style="'+(ORDEM===k?"border-color:rgba(46,229,157,.4);color:var(--verde)":"")+
         '" onclick="ORDEM=\''+k+'\';pintarResumo()">'+
-        ({pagar_bonus:"Maior a pagar",receita_aai:"Maior receita",contratos:"Mais contratos",barra:"Por nome"}[k])+
+        ({a_pagar:"Maior a pagar",receita_aai:"Maior receita",contratos:"Mais contratos",barra:"Por nome"}[k])+
         '</button>').join("")+
       '<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--dim);margin-left:4px">'+
         '<input type="checkbox" '+(SO_NEG?"checked":"")+' onchange="SO_NEG=this.checked;pintarResumo()"> só as negativas</label>'+
@@ -724,7 +730,7 @@ function secBarras(){
 function filtradas(){
   let l=LINHAS.slice();
   if(BUSCA) l=l.filter(x=>x.barra===BUSCA);
-  if(SO_NEG) l=l.filter(x=>Number(x.pagar_bonus)<0);
+  if(SO_NEG) l=l.filter(x=>Number(x.a_pagar)<0);
   l.sort((a,b)=>ORDEM==="barra"
     ? String(a.barra).localeCompare(String(b.barra),"pt-BR")
     : (Number(b[ORDEM])||0)-(Number(a[ORDEM])||0));
@@ -738,14 +744,14 @@ function tabela(l){
   return '<table class="barras">'+
     '<colgroup><col class="c-barra"><col class="c-parc"><col class="c-min"><col class="c-num">'+
     '<col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num">'+
-    '<col class="c-min"><col class="c-num"><col class="c-bt"></colgroup>'+
+    '<col class="c-min"><col class="c-num"><col class="c-mod"><col class="c-bt"></colgroup>'+
     '<thead><tr>'+
     '<th>Barra</th><th>Parceiro</th><th class="n">Novos</th><th class="n">Contratos</th>'+
-    '<th class="n">Zeragens</th><th class="n">Receita AAI</th><th class="n">Bônus</th>'+
+    '<th class="n">Zeragens</th><th class="n">Receita AAI</th><th class="n" title="Modelo novo: bônus dos pontos. Modelo antigo: R$ 0,03 por contrato.">Bônus / R$ 0,03</th>'+
     '<th class="n">Custos</th><th class="n s">Líquido</th><th class="n">%</th>'+
-    '<th class="n">A pagar</th><th></th></tr></thead><tbody>'+
+    '<th class="n">A pagar</th><th>Modelo</th><th></th></tr></thead><tbody>'+
     l.map(function(x,i){
-      const neg=Number(x.pagar_bonus)<0;
+      const neg=Number(x.a_pagar)<0;
       return '<tr onclick="editar('+i+')" style="cursor:pointer">'+
         '<td title="'+x.barra+'"><div class="nome"><span class="ini">'+ini(x.barra)+'</span>'+
           '<span class="corta" style="max-width:100%">'+x.barra+'</span>'+
@@ -757,20 +763,21 @@ function tabela(l){
         '<td class="n">'+(Number(x.contratos)?nf(x.contratos):"—")+'</td>'+
         '<td class="n f">'+(Number(x.zeragens)?nf(x.zeragens):"—")+'</td>'+
         '<td class="n">'+vl(x.receita_aai)+'</td>'+
-        '<td class="n">'+vl(x.bonus)+'</td>'+
+        '<td class="n">'+vl(x.extra_modelo)+'</td>'+
         '<td class="n'+(Number(x.custos_plataforma)<0?" rubro":"")+'">'+vl(x.custos_plataforma)+'</td>'+
-        '<td class="n s d">'+vl(x.liquido_bonus)+'</td>'+
+        '<td class="n s d">'+vl(x.liquido)+'</td>'+
         '<td class="n f">'+pct(x.pct_parceiro)+'</td>'+
-        '<td class="n" style="font-weight:800'+(neg?";color:var(--vermelho)":"")+'">'+vl(x.pagar_bonus)+'</td>'+
+        '<td class="n" style="font-weight:800'+(neg?";color:var(--vermelho)":"")+'">'+vl(x.a_pagar)+'</td>'+
+        '<td>'+botaoModelo(x)+'</td>'+
         '<td class="n"><button class="bt" style="padding:5px 10px;font-size:11.5px" '+
           'onclick="event.stopPropagation();editar('+i+')">editar</button></td></tr>';
     }).join("")+
     '</tbody><tfoot><tr><td>'+nf(base.length)+' barras</td><td></td>'+
       '<td class="n">'+nf(t("novos_clientes"))+'</td><td class="n">'+nf(t("contratos"))+'</td>'+
       '<td class="n">'+nf(t("zeragens"))+'</td><td class="n">'+vl(t("receita_aai"))+'</td>'+
-      '<td class="n">'+vl(t("bonus"))+'</td><td class="n rubro">'+vl(t("custos_plataforma"))+'</td>'+
-      '<td class="n s">'+vl(t("liquido_bonus"))+'</td><td></td>'+
-      '<td class="n verde">'+vl(t("pagar_bonus"))+'</td><td></td></tr></tfoot></table>';
+      '<td class="n">'+vl(t("extra_modelo"))+'</td><td class="n rubro">'+vl(t("custos_plataforma"))+'</td>'+
+      '<td class="n s">'+vl(t("liquido"))+'</td><td></td>'+
+      '<td class="n verde">'+vl(t("a_pagar"))+'</td><td></td><td></td></tr></tfoot></table>';
 }
 
 /* Os dois cenários da planilha, um do lado do outro. */
@@ -779,26 +786,54 @@ function secCenarios(){
   const tot=Math.abs(b)+Math.abs(c)||1;
   const pb=Math.round(100*Math.abs(b)/tot), pc=100-pb;
   return '<div class="cx sec">'+
-    secTopo(IC.torta,"a","Os dois cenários","o mesmo mês nas duas réguas de bônus",
-      '<span class="chip">bônus é o que <b>vale</b></span>')+
+    secTopo(IC.torta,"a","Os dois modelos","simulação: o mês inteiro em cada régua",
+      '<span class="chip">vale o <b>modelo de cada barra</b></span>')+
     '<div style="padding:0 24px 20px">'+
       '<div class="emp">'+
         '<div style="width:'+pb+'%;background:var(--verde)"><div>'+
-          '<div class="p">'+brl(b)+'</div><div class="l">CENÁRIO DO BÔNUS</div></div></div>'+
+          '<div class="p">'+brl(b)+'</div><div class="l">SE TODOS NO NOVO</div></div></div>'+
         '<div style="width:'+pc+'%;background:var(--ciano)"><div>'+
-          '<div class="p">'+brl(c)+'</div><div class="l">R$ 0,03 POR CONTRATO</div></div></div>'+
+          '<div class="p">'+brl(c)+'</div><div class="l">SE TODOS NO ANTIGO</div></div></div>'+
       '</div>'+
       '<div class="emp-leg">'+
         '<div class="it"><i style="background:var(--verde)"></i><div>'+
-          '<div class="r">Cenário do bônus</div><div class="v">'+brl(b)+
+          '<div class="r">Modelo novo — pontos</div><div class="v">'+brl(b)+
           ' <span>· '+brl(soma(LINHAS,"bonus"))+' de incentivo</span></div></div></div>'+
         '<div class="it"><i style="background:var(--ciano)"></i><div>'+
-          '<div class="r">R$ 0,03 por contrato</div><div class="v">'+brl(c)+
+          '<div class="r">Modelo antigo — R$ 0,03 por contrato</div><div class="v">'+brl(c)+
           ' <span>· '+nf(soma(LINHAS,"contratos"))+' contratos</span></div></div></div>'+
         '<div class="it"><i style="background:rgba(255,255,255,.18)"></i><div>'+
           '<div class="r">Diferença</div><div class="v">'+brl(Math.abs(b-c))+
           ' <span>· o que muda entre as duas</span></div></div></div>'+
       '</div></div></div>';
+}
+
+/* ================= modelo de remuneração ================= */
+/* Novo = bônus dos pontos; antigo = R$ 0,03 por contrato. Vale por barra,
+   em todos os meses abertos; mês fechado fica como foi fechado. */
+function botaoModelo(x,grande){
+  const ant=x.modelo==="antigo", pode=PAPEL!=="leitor";
+  const est='border-radius:999px;padding:'+(grande?'7px 14px;font-size:12.5px':'4px 10px;font-size:11px')+
+    ';white-space:nowrap;'+(ant?'background:var(--ciano-fundo);border-color:rgba(34,211,238,.4);color:var(--ciano)'
+                            :'background:var(--verde-fundo);border-color:rgba(46,229,157,.35);color:var(--verde)');
+  const rot=(ant?'Antigo':'Novo')+(pode?' ⇄':'');
+  return pode
+    ? '<button class="bt" style="'+est+'" title="Trocar para o modelo '+(ant?'novo':'antigo')+'" '+
+      'onclick="event.stopPropagation();trocarModelo(\''+esc1(x.barra)+'\',\''+(ant?'antigo':'novo')+'\')">'+rot+'</button>'
+    : '<span class="bt" style="'+est+';cursor:default">'+rot+'</span>';
+}
+async function trocarModelo(barra,atual){
+  const novo=atual==="antigo"?"novo":"antigo";
+  if(!confirm("Passar "+barra+" para o modelo "+novo.toUpperCase()+"?\n\n"+
+    (novo==="antigo"?"O parceiro passa a receber sobre R$ 0,03 por contrato, sem o bônus dos pontos."
+                    :"O parceiro passa a receber sobre o bônus dos pontos, sem os R$ 0,03 por contrato.")+
+    "\n\nVale para todos os meses abertos. Pagamentos já registrados não mudam.")) return;
+  const r=await sb.rpc("gerencial_definir_modelo",{p_barra:barra,p_modelo:novo});
+  if(r.error){ tor("Não trocou",r.error.message,true); return; }
+  tor("Modelo "+novo,barra+" recalculada");
+  const aberta=el("gav").classList.contains("on");
+  await vResumo();
+  if(aberta){ const i=filtradas().findIndex(y=>y.barra===barra); if(i>=0) editar(i); }
 }
 
 /* ================= edição ================= */
@@ -815,16 +850,23 @@ function editar(i){
   el("gavS").textContent=(x.parceiro||"sem parceiro")+" · "+mesNome(COMP);
   const pode=PAPEL!=="leitor"&&!x.fechado;
   el("gavB").innerHTML =
+    '<div class="gav-sec">Modelo de remuneração</div>'+
+    '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px">'+botaoModelo(x,true)+
+      '<span style="font-size:12px;color:var(--dim)">'+(x.modelo==="antigo"
+        ?"Antigo: R$ 0,03 por contrato operado."
+        :"Novo: bônus dos pontos (Faixas Trader).")+'</span></div>'+
     '<div class="gav-sec">Como fica</div>'+
     '<div style="border:1px solid var(--linha);border-radius:14px;padding:6px">'+
       linhaEx("%","pc","Receita AAI",x.receita_aai)+
-      linhaEx("+","ma","Bônus",x.bonus)+
+      (x.cenario==="bonus"
+        ? linhaEx("+","ma","Bônus dos pontos",x.extra_modelo)
+        : linhaEx("+","ma","R$ 0,03 × "+nf(x.contratos)+" contratos",x.extra_modelo))+
       linhaEx("−","me","Custo de plataforma",x.custos_plataforma)+
-      linhaEx("=","ig","Receita − plataformas",x.rmp_bonus," total")+
-      linhaEx("−","me","Imposto ("+pct(x.imposto_pct)+")",-(Number(x.rmp_bonus)-Number(x.liquido_bonus)))+
-      linhaEx("=","ig","Líquido",x.liquido_bonus," total")+
-      linhaEx("=","ig",pct(x.pct_parceiro)+" para o parceiro",x.pagar_bonus," final")+
-      linhaEx("=","ig","Fica na casa",Number(x.liquido_bonus)-Number(x.pagar_bonus))+
+      linhaEx("=","ig","Receita − plataformas",x.receita_menos_plataformas," total")+
+      linhaEx("−","me","Imposto ("+pct(x.imposto_pct)+")",-(Number(x.receita_menos_plataformas)-Number(x.liquido)))+
+      linhaEx("=","ig","Líquido",x.liquido," total")+
+      linhaEx("=","ig",pct(x.pct_parceiro)+" para o parceiro",x.a_pagar," final")+
+      linhaEx("=","ig","Fica na casa",Number(x.liquido)-Number(x.a_pagar))+
     '</div>'+
     (pode
       ? '<div class="gav-sec">Editar</div>'+
@@ -887,12 +929,12 @@ function baixarCSV(nome,cab,linhas){
 }
 function baixarResumo(){
   baixarCSV("fechamento_"+String(COMP).slice(0,7)+".csv",
-    ["barra","parceiro","novos clientes","contratos","zeragens","receita AAI","bonus",
+    ["barra","parceiro","modelo","novos clientes","contratos","zeragens","receita AAI","bonus",
      "R$ 0,03 por contrato","custos de plataforma","receita menos plataformas","liquido","%",
-     "a pagar","liquido cenario R$0,03","a pagar cenario R$0,03","situacao","editado"],
-    filtradas().map(x=>[x.barra,x.parceiro,x.novos_clientes,x.contratos,x.zeragens,x.receita_aai,
-      x.bonus,x.valor_por_contrato,x.custos_plataforma,x.rmp_bonus,x.liquido_bonus,x.pct_parceiro,
-      x.pagar_bonus,x.liquido_contrato,x.pagar_contrato,x.status_pagamento||"aberto",
+     "a pagar (modelo da barra)","liquido cenario R$0,03","a pagar cenario R$0,03","situacao","editado"],
+    filtradas().map(x=>[x.barra,x.parceiro,x.modelo,x.novos_clientes,x.contratos,x.zeragens,x.receita_aai,
+      x.bonus,x.valor_por_contrato,x.custos_plataforma,x.receita_menos_plataformas,x.liquido,x.pct_parceiro,
+      x.a_pagar,x.liquido_contrato,x.pagar_contrato,x.status_pagamento||"aberto",
       x.editado?x.campos_ajustados:""]));
 }
 
@@ -902,14 +944,14 @@ function baixarResumo(){
 let FPAG="aberto";
 async function vPagamentos(){
   const r=await sb.from("vw_gerencial_resumo").select("*").eq("competencia",COMP)
-    .order("pagar_bonus",{ascending:false});
+    .order("a_pagar",{ascending:false});
   if(r.error) return falha(r.error);
-  const todos=(r.data||[]).filter(x=>Number(x.pagar_bonus)!==0);
+  const todos=(r.data||[]).filter(x=>Number(x.a_pagar)!==0);
   const pagos=todos.filter(x=>x.status_pagamento==="pago");
   const abertos=todos.filter(x=>x.status_pagamento!=="pago");
   const lista=FPAG==="pago"?pagos:FPAG==="todos"?todos:abertos;
   const semCusto=soma(todos,"custos_plataforma")===0;
-  const tA=soma(abertos,"pagar_bonus"), tP=soma(pagos,"pagar_bonus"), tT=soma(todos,"pagar_bonus");
+  const tA=soma(abertos,"a_pagar"), tP=soma(pagos,"a_pagar"), tT=soma(todos,"a_pagar");
   const feito=tT?Math.round(100*tP/tT):0;
 
   el("alvo").innerHTML =
@@ -940,10 +982,10 @@ async function vPagamentos(){
       (!lista.length?'<div class="vazio">Nada neste filtro.</div>'
       :'<div class="rola"><table><thead><tr><th>Barra</th><th>Parceiro</th><th class="n">A pagar</th>'+
         '<th>Situação</th><th>Pago em</th><th>Quem registrou</th><th></th></tr></thead><tbody>'+
-        lista.map(x=>{ const neg=Number(x.pagar_bonus)<0;
+        lista.map(x=>{ const neg=Number(x.a_pagar)<0;
           return '<tr><td><div class="nome"><span class="ini">'+ini(x.barra)+'</span>'+x.barra+'</div></td>'+
             '<td class="d">'+(x.parceiro||'<span class="et et-o">sem parceiro</span>')+'</td>'+
-            '<td class="n" style="font-weight:800'+(neg?";color:var(--vermelho)":"")+'">'+brl(x.pagar_bonus)+'</td>'+
+            '<td class="n" style="font-weight:800'+(neg?";color:var(--vermelho)":"")+'">'+brl(x.a_pagar)+'</td>'+
             '<td><span class="et '+(x.status_pagamento==="pago"?"et-v":"et-o")+'">'+
               (x.status_pagamento||"aberto")+'</span></td>'+
             '<td class="d">'+(x.pago_em?fmtData(x.pago_em):"—")+'</td>'+
@@ -951,9 +993,9 @@ async function vPagamentos(){
             '<td>'+(PAPEL==="leitor"?"":neg
               ?'<span class="et et-o" title="Barra negativa: não há o que pagar">negativa</span>'
               :x.status_pagamento==="pago"
-                ?'<button class="bt" onclick="pagar(\''+esc1(x.barra)+'\','+x.pagar_bonus+',\'aberto\')">reabrir</button>'
+                ?'<button class="bt" onclick="pagar(\''+esc1(x.barra)+'\','+x.a_pagar+',\'aberto\')">reabrir</button>'
                 :'<button class="bt-f" style="padding:7px 14px;font-size:12px" onclick="pagar(\''+
-                  esc1(x.barra)+'\','+x.pagar_bonus+',\'pago\')">marcar pago</button>')+'</td></tr>';
+                  esc1(x.barra)+'\','+x.a_pagar+',\'pago\')">marcar pago</button>')+'</td></tr>';
         }).join("")+'</tbody></table></div>')+
       '<div class="sec-pe" style="cursor:default;font-weight:400;font-size:12px;color:var(--fraco)">'+
         'O valor é congelado quando o pagamento é registrado — reimportar o mês depois não altera o que já foi pago. '+
