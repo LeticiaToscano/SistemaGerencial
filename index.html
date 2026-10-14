@@ -412,7 +412,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v21/09 MFA-2";
+const VERSAO = "v14/10 importar-4";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -1323,16 +1323,18 @@ function competenciaDe(linhas, cols){
 
 function vImportar(){
   el("alvo").innerHTML =
-    '<div class="aviso c">Dois arquivos servem, e o mês é <b>reconhecido por dentro</b> deles:'+
-      '<br>· <b>Produção da Genial</b> (abas Data e FAIXAS_TRADER) — traz receita e bônus; o custo vem do CRM.'+
-      '<br>· <b>Planilha mensal</b> (abas Receitas, Plataforma e Pontos) — traz o mês inteiro, '+
-      'e é por ela que o histórico entra.</div>'+
+    '<div class="aviso c">Solte os arquivos do mês <b>todos juntos</b> — cada um é reconhecido por dentro:'+
+      '<br>· <b>Produção da Genial</b> (LIVRE_INVESTIMENTOS_…, aba Data) — receita e custo de plataforma. Obrigatório.'+
+      '<br>· <b>Incentivo</b> (CPF, pontos, incentivo) — o bônus; a barra sai do CPF.'+
+      '<br>· <b>Cobrança Nelogica</b> (aba Base) — Automação Plus e Premium por cliente.'+
+      '<br>· <b>Lista do Akeloo</b> — R$ '+AKELOO_PRECO.toFixed(2).replace(".",",")+' por cliente da lista.'+
+      '<br>· Ou a <b>planilha mensal</b> antiga (Receitas, Plataforma e Pontos), sozinha — é por ela que o histórico entrou.</div>'+
     '<div class="cx sec">'+
       secTopo(IC.subir,"v","Importar um mês","o arquivo diz de que mês ele é",
         '<span class="chip">no alto: <b>'+mesNome(COMP)+'</b></span>')+
       '<div class="solta" id="solta"><strong>Solte o arquivo aqui</strong>'+
-        '<span>ou clique para escolher · .xlsx</span></div>'+
-      '<input type="file" id="arq" accept=".xlsx,.xls" hidden>'+
+        '<span>ou clique para escolher · pode soltar vários .xlsx juntos</span></div>'+
+      '<input type="file" id="arq" accept=".xlsx,.xls" multiple hidden>'+
       '<div id="leitura"></div></div>'+
     '<div class="cx sec" id="jaEntrou"></div>'+
     '<div id="estadoVolume"></div>';
@@ -1341,8 +1343,8 @@ function vImportar(){
   d.ondragover=e=>{e.preventDefault();d.classList.add("sob");};
   d.ondragleave=()=>d.classList.remove("sob");
   d.ondrop=e=>{e.preventDefault();d.classList.remove("sob");
-    if(e.dataTransfer.files[0]) ler(e.dataTransfer.files[0]);};
-  i.onchange=()=>{ if(i.files[0]) ler(i.files[0]); };
+    if(e.dataTransfer.files.length) ler(e.dataTransfer.files);};
+  i.onchange=()=>{ if(i.files.length) ler(i.files); };
   mesesCarregados();
   estadoVolume();
 }
@@ -1398,68 +1400,210 @@ async function mesesCarregados(){
     }).join("")+'</tbody></table></div>';
 }
 
-async function ler(file){
-  const a=el("leitura");
-  a.innerHTML='<div class="carreg"><div class="giro"></div>Lendo '+file.name+'…</div>';
-  let wb; try{ wb=XLSX.read(await file.arrayBuffer(),{cellDates:true}); }
-  catch(e){ return a.innerHTML=nota("Não consegui abrir: "+e.message,"r"); }
+/* Os arquivos do mês chegam separados — produção da Genial, incentivo
+   por CPF, cobrança da Nelogica (Automação) e lista do Akeloo. Podem ser
+   soltos juntos: cada um é reconhecido pelo que tem dentro, não pelo nome. */
+const AKELOO_PRECO=19.09;   // custo por cliente da lista do Akeloo, por mês
+const soDig=v=>String(v==null?"":v).replace(/\D/g,"");
+const cpf11=v=>{ const d=soDig(v); return d&&d.length<=11?d.padStart(11,"0"):d; };
 
+function cabecalhos(wb, aba){
+  const b=XLSX.utils.sheet_to_json(wb.Sheets[aba],{header:1,defval:null,raw:true});
+  const out=[]; for(let i=0;i<Math.min(8,b.length);i++) out.push(...(b[i]||[]).map(nrm));
+  return out;
+}
+function tipoDoArquivo(wb){
   const abas=wb.SheetNames;
-  const temProducao = abas.some(n=>n.toLowerCase()==="data") &&
-                      abas.some(n=>n.toUpperCase().indexOf("FAIXAS")>=0);
-  const temTotal    = abas.some(n=>nrm(n)==="RECEITAS") && abas.some(n=>nrm(n)==="PLATAFORMA");
+  if(abas.some(n=>nrm(n)==="RECEITAS") && abas.some(n=>nrm(n)==="PLATAFORMA")) return {tipo:"total"};
+  const ad=abas.find(n=>n.toLowerCase()==="data");
+  if(ad){ const c=cabecalhos(wb,ad);
+    if(c.includes("TIPO PRODUTO") && c.some(x=>x.indexOf("COMISS")>=0)) return {tipo:"producao",aba:ad}; }
+  for(const n of abas){
+    const c=cabecalhos(wb,n);
+    if(c.includes("NOME DO PLANO") && c.includes("VALOR") && c.includes("DOCUMENTO")) return {tipo:"nelogica",aba:n};
+    if(c.includes("CPFCNPJ") && (c.includes("PLATFORMORIGIN")||c.includes("ADMINB2B"))) return {tipo:"akeloo",aba:n};
+    if(c.includes("CPF") && c.includes("PONTOS") && c.includes("INCENTIVO") && !c.some(x=>x.indexOf("ASSESSOR")>=0))
+      return {tipo:"incentivo",aba:n};
+  }
+  return null;
+}
+const NOME_TIPO={producao:"Produção da Genial",incentivo:"Incentivo (pontos por CPF)",
+  nelogica:"Cobrança Nelogica — Automação",akeloo:"Lista do Akeloo",total:"Planilha mensal"};
 
-  if(temProducao) return lerProducao(file, wb, a);
-  if(temTotal)    return lerTotal(file, wb, abas, a);
-
-  a.innerHTML=nota("Não reconheci este arquivo. Esperava <b>Data + FAIXAS_TRADER</b> "+
-    "(produção da Genial) ou <b>Receitas + Plataforma</b> (planilha mensal). "+
-    "Abas encontradas: "+abas.join(", ")+".","r");
+async function ler(files){
+  files=[...files];
+  const a=el("leitura");
+  a.innerHTML='<div class="carreg"><div class="giro"></div>Lendo '+files.length+' arquivo(s)…</div>';
+  const achados={}, naoSei=[];
+  for(const f of files){
+    let wb; try{ wb=XLSX.read(await f.arrayBuffer(),{cellDates:true}); }
+    catch(e){ naoSei.push(f.name+" (não abriu)"); continue; }
+    const t=tipoDoArquivo(wb);
+    if(!t){ naoSei.push(f.name+" — abas: "+wb.SheetNames.join(", ")); continue; }
+    if(achados[t.tipo]) return a.innerHTML=nota("Vieram dois arquivos do mesmo tipo ("+NOME_TIPO[t.tipo]+
+      "): <b>"+achados[t.tipo].file.name+"</b> e <b>"+f.name+"</b>. Solte só um de cada.","r");
+    achados[t.tipo]={file:f,wb:wb,aba:t.aba};
+  }
+  if(naoSei.length && !Object.keys(achados).length)
+    return a.innerHTML=nota("Não reconheci: "+naoSei.join("<br>")+"<br>Esperava a produção da Genial (aba Data), "+
+      "o incentivo por CPF, a cobrança da Nelogica, a lista do Akeloo ou a planilha mensal.","r");
+  const extra=naoSei.length?"Ignorado(s), não reconheci: "+naoSei.join("; ")+".":"";
+  if(achados.total){
+    if(Object.keys(achados).length>1) return a.innerHTML=nota("A planilha mensal já traz o mês inteiro — "+
+      "importe-a sozinha.","r");
+    return lerTotal(achados.total.file, achados.total.wb, achados.total.wb.SheetNames, a);
+  }
+  if(!achados.producao) return a.innerHTML=nota("Falta a <b>produção da Genial</b> (LIVRE_INVESTIMENTOS_…, aba Data). "+
+    "Os outros arquivos ("+Object.keys(achados).map(k=>NOME_TIPO[k]).join(", ")+") dependem dela "+
+    "para saber a barra de cada cliente. Solte todos juntos.","r");
+  try{ await lerMes(achados, a, extra); }
+  catch(e){ a.innerHTML=nota("Não consegui montar o mês: "+(e.message||e),"r"); }
 }
 
 const nota=(txt,c)=>'<div class="aviso'+(c?" "+c:"")+'" style="margin:0 24px 16px">'+txt+'</div>';
+const ehIncentivoAgregado=d=>/^incentivo\s*-\s*faixas?\s*trader/.test(d);
 
-/* ---------------------------------------------------------------------
-   Arquivo de produção da Genial: receita e bônus. O custo vem do CRM.
-   --------------------------------------------------------------------- */
-function lerProducao(file, wb, a){
-  const abas=wb.SheetNames;
-  const ad=abas.find(n=>n.toLowerCase()==="data");
-  const af=abas.find(n=>n.toUpperCase().indexOf("FAIXAS")>=0);
-  const D=lerAba(wb,ad,["ASSESSOR","TIPO PRODUTO","COMISS"]);
-  const cAss=achaCol(D.colunas,"ASSESSOR"), cTip=achaCol(D.colunas,"TIPO PRODUTO");
-  const cDes=achaCol(D.colunas,"DESCRICAO","DESCRIÇÃO"), cCom=achaCol(D.colunas,"COMISS");
+async function lerMes(A, a, extra){
+  /* ---- produção: receita e custo de plataforma ---- */
+  const wb=A.producao.wb, abas=wb.SheetNames;
+  const D=lerAba(wb,A.producao.aba,["ASSESSOR","TIPO PRODUTO","COMISS"]);
+  const cAss=achaCol(D.colunas,"ASSESSOR"), cTip=achaCol(D.colunas,"TIPO PRODUTO"),
+        cDes=achaCol(D.colunas,"DESCRICAO","DESCRIÇÃO"), cCom=achaCol(D.colunas,"COMISS"),
+        cLiq=achaCol(D.colunas,"VALOR LIQUIDO","VALOR LÍQUIDO"), cCpf=achaCol(D.colunas,"CPF"),
+        cSin=achaCol(D.colunas,"COD SINACOR CLIENTE"), cNom=achaCol(D.colunas,"CLIENTE"),
+        cPro=achaCol(D.colunas,"PRODUTO"), cRec=achaCol(D.colunas,"RECEITA GENIAL");
 
-  const receitas=[], fora={custo:0,inc:0,aj:0,barra:0,sem:0}; let foraV=0;
+  const receitas=[], custos=[], fora={inc:0,aj:0,barra:0,sem:0}; let foraV=0, naBarra=0;
+  const porCpf={};    // cpf -> {barras:{barra:n}, sinacor}
+  const semDig=v=>{ const s=soDig(v); return s.length>1?s.slice(0,-1):s; };
   for(const l of D.linhas){
-    const tipo=txt(l[cTip])||"", desc=(txt(l[cDes])||"").toLowerCase();
-    if(tipo==="Custo de Plataforma"){ fora.custo++; continue; }
-    if(desc===DESCARTAR[0]){ fora.inc++; continue; }
+    const tipo=txt(l[cTip])||"", desc=(txt(l[cDes])||"").toLowerCase(), b=txt(l[cAss]);
+    const cpf=cpf11(l[cCpf]);
+    if(cpf&&b){ const o=porCpf[cpf]||(porCpf[cpf]={barras:{},sinacor:semDig(l[cSin])});
+      o.barras[b]=(o.barras[b]||0)+1; }
+    if(tipo==="Custo de Plataforma"){
+      const d=txt(l[cDes]); if(!d) continue;
+      let s=semDig(l[cSin]);
+      if(!s){ if(!b) continue; s="BARRA"+chaveBarra(b).slice(0,24); naBarra++; }
+      const v=num(l[cCom]); const liq=num(l[cLiq]);
+      custos.push({sinacor:s,descricao:d,cpf:cpf||null,nome:txt(l[cNom]),barra:b,tipo_produto:tipo,
+        produto:d,receita_genial:num(l[cRec]),valor_liquido:liq,comissao:(v!=null&&v!==0)?v:(liq||0)});
+      continue;
+    }
+    if(ehIncentivoAgregado(desc)){ fora.inc++; continue; }
     if(desc===DESCARTAR[1]){ fora.aj++; continue; }
     if(FORA.has(chaveBarra(l[cAss]))){ fora.barra++; foraV+=num(l[cCom])||0; continue; }
-    const b=txt(l[cAss]); if(!b) fora.sem++;
+    if(!b) fora.sem++;
     receitas.push(linhaReceita(l, D.colunas, b));
   }
-  const F=lerAba(wb,af,["CLIENTE","PONTOS","INCENTIVO"]);
-  const cCli=achaCol(F.colunas,"CLIENTE"), cInc=achaCol(F.colunas,"INCENTIVO"),
-        cPon=achaCol(F.colunas,"PONTOS");
-  const bonus=[];
-  for(const l of F.linhas){
-    const n=txt(l[cCli]), i=num(l[cInc])||0;
-    if(n&&i>0) bonus.push({cliente:n,pontos:num(l[cPon]),incentivo:i});
+  const custoGenial=custos.reduce((s,x)=>s+(x.comissao||0),0), nCustoGenial=custos.length;
+
+  /* barra de um CPF: primeiro a que a própria produção do mês mostra
+     (a mais frequente, se o cliente tiver mais de uma conta); se o CPF
+     não operou no mês, o cadastro de clientes. */
+  const precisa=new Set();
+  const lerLinhas=(k,chaves)=>A[k]?lerAba(A[k].wb,A[k].aba,chaves):null;
+  const I=lerLinhas("incentivo",["CPF","PONTOS","INCENTIVO"]);
+  const N=lerLinhas("nelogica",["DOCUMENTO","NOME DO PLANO","VALOR"]);
+  const K=lerLinhas("akeloo",["CPFCNPJ","FULLNAME","EMAIL"]);
+  const col=(X,...p)=>achaCol(X.colunas,...p);
+  const cpfsDe=(X,c)=>X?X.linhas.map(l=>cpf11(l[c])).filter(Boolean):[];
+  [[I,I&&col(I,"CPF")],[N,N&&col(N,"DOCUMENTO")],[K,K&&col(K,"CPFCNPJ")]]
+    .forEach(([X,c])=>cpfsDe(X,c).forEach(x=>{ if(!porCpf[x]) precisa.add(x); }));
+  const cad={};
+  if(precisa.size){
+    const r=await sb.rpc("gerencial_cpfs",{p_cpfs:[...precisa]});
+    if(r.error) throw r.error;
+    (r.data||[]).forEach(x=>cad[x.cpf]={barra:x.barra,sinacor:x.sinacor});
   }
+  const quem=cpf=>{
+    const o=porCpf[cpf];
+    if(o){ const b=Object.entries(o.barras).sort((x,y)=>y[1]-x[1])[0][0]; return {barra:b,sinacor:o.sinacor}; }
+    return cad[cpf]&&cad[cpf].barra?cad[cpf]:null;
+  };
+  let semBarra=0, semBarraV=0;
+
+  /* ---- incentivo por CPF ---- */
+  let bonus=[];
+  if(I){
+    const cC=col(I,"CPF"), cN=col(I,"NOME"), cP=col(I,"PONTOS"), cI=col(I,"INCENTIVO");
+    for(const l of I.linhas){
+      const v=num(l[cI])||0, cpf=cpf11(l[cC]); if(!(v>0)||!cpf) continue;
+      const q=quem(cpf); if(!q){ semBarra++; semBarraV+=v; }
+      bonus.push({cliente:txt(l[cN]),cpf:cpf,sinacor:q&&q.sinacor,barra:q?q.barra:"(sem barra)",
+        pontos:num(l[cP]),incentivo:v});
+    }
+  } else {
+    const af=abas.find(n=>n.toUpperCase().indexOf("FAIXAS")>=0);
+    if(af){
+      const F=lerAba(wb,af,["CLIENTE","PONTOS","INCENTIVO"]);
+      const c1=achaCol(F.colunas,"CLIENTE"), c2=achaCol(F.colunas,"INCENTIVO"), c3=achaCol(F.colunas,"PONTOS");
+      for(const l of F.linhas){ const n=txt(l[c1]), i=num(l[c2])||0;
+        if(n&&i>0) bonus.push({cliente:n,pontos:num(l[c3]),incentivo:i}); }
+    }
+  }
+
+  /* ---- parcerias: Automação (Nelogica) e Akeloo ---- */
+  const parceria=(cpf,nome,desc,valor)=>{
+    const q=quem(cpf); if(!q){ semBarra++; semBarraV+=valor; }
+    custos.push({sinacor:q&&q.sinacor?q.sinacor:"CPF"+cpf, descricao:desc, cpf:cpf, nome:nome,
+      barra:q?q.barra:"(sem barra)", tipo_produto:null, produto:desc,
+      receita_genial:0, valor_liquido:0, comissao:valor});
+  };
+  let nNel=0, vNel=0, nAk=0;
+  if(N){
+    const cD=col(N,"DOCUMENTO"), cPl=col(N,"NOME DO PLANO"), cV=achaCol(N.colunas,"VALOR");
+    for(const l of N.linhas){
+      const cpf=cpf11(l[cD]), v=num(l[cV])||0, p=txt(l[cPl]); if(!cpf||!p||!v) continue;
+      parceria(cpf,null,p,-Math.abs(v)); nNel++; vNel+=v;
+    }
+  }
+  if(K){
+    const cD=col(K,"CPFCNPJ"), cN=col(K,"FULLNAME");
+    const vistos=new Set();
+    for(const l of K.linhas){
+      const cpf=cpf11(l[cD]); if(!cpf||vistos.has(cpf)) continue; vistos.add(cpf);
+      parceria(cpf,txt(l[cN]),"Akeloo",-AKELOO_PRECO); nAk++;
+    }
+  }
+
+  /* ---- competência e conferências ---- */
   const comp=competenciaDe(D.linhas,D.colunas);
-  PRONTO={tipo:"producao",receitas:receitas,bonus:bonus,custos:null,comp:comp};
-  pintarLeitura(file,a,{
+  const alertas=[];
+  if(nCustoGenial && (!N || !K))
+    alertas.push("O custo do mês vai ser <b>substituído inteiro</b> por este envio, e falta "+
+      [!N?"a cobrança da Nelogica (Automação)":null,!K?"a lista do Akeloo":null].filter(Boolean).join(" e ")+
+      ". Se importar assim, o mês fica <b>sem</b> esse custo. Solte todos os arquivos juntos.");
+  if(!bonus.length) alertas.push("Sem arquivo de incentivo: o mês entra <b>sem bônus</b>.");
+  if(N){ // a Nelogica diz a competência numa aba de resumo
+    for(const n of A.nelogica.wb.SheetNames){
+      const t=JSON.stringify(XLSX.utils.sheet_to_json(A.nelogica.wb.Sheets[n],{header:1,defval:null}).slice(0,12));
+      const m=t.match(/Compet[eê]ncia\s*-\s*(\d{2})\/(\d{4})/i);
+      if(m){ const cn=m[2]+"-"+m[1]; if(comp&&cn!==comp) alertas.push("A cobrança da Nelogica é de <b>"+
+        m[1]+"/"+m[2]+"</b>, e a produção é de outro mês. Confira se é o arquivo certo."); break; }
+    }
+  }
+  if(semBarra) alertas.push(nf(semBarra)+" cliente(s) dos arquivos de incentivo/parcerias não foram achados "+
+    "nem na produção nem no cadastro ("+brl(semBarraV)+"). Entram como <b>(sem barra)</b> para o valor não sumir.");
+
+  PRONTO={tipo:"producao",receitas:receitas,bonus:bonus,custos:nCustoGenial||nNel||nAk?custos:null,comp:comp};
+  const nomes=Object.values(A).map(x=>x.file.name).join(" · ");
+  pintarLeitura({name:nomes},a,{
     receita:[receitas.length, receitas.reduce((s,x)=>s+(x.comissao_assessor||0),0)],
     bonus:[bonus.length, bonus.reduce((s,x)=>s+x.incentivo,0)],
-    custo:null, comp:comp,
-    pe:"Fora da conta: "+nf(fora.custo)+" linhas de custo de plataforma (vêm do CRM), "+
-       fora.inc+" do incentivo agregado (entra pelos pontos)"+
-       (fora.barra?", e "+nf(fora.barra)+" linhas de barra excluída ("+brl(foraV)+
-        ", mais "+fora.aj+" de ajuste)":" e "+fora.aj+" de ajuste")+"."+
-       (fora.sem?" "+nf(fora.sem)+" linha(s) vieram sem assessor e entram como <b>(sem barra)</b>, "+
-        "para o valor não sumir.":"")});
+    custo:PRONTO.custos?[custos.length, custos.reduce((s,x)=>s+(x.comissao||0),0)]:null,
+    comp:comp, alerta:alertas.join("<br>"),
+    pe:"Reconhecidos: "+Object.keys(A).map(k=>NOME_TIPO[k]).join(", ")+"."+
+       (PRONTO.custos?"<br>Custo: Genial "+brl(custoGenial)+" ("+nf(nCustoGenial)+" linhas)"+
+         (N?" · Automação "+brl(-vNel)+" ("+nf(nNel)+")":"")+
+         (K?" · Akeloo "+nf(nAk)+" × "+brl(AKELOO_PRECO)+" = "+brl(-nAk*AKELOO_PRECO):"")+".":
+         "<br>A produção não trouxe custo de plataforma — ele vem do CRM.")+
+       "<br>Fora da receita: "+fora.inc+" linha(s) do incentivo agregado (entra pelos pontos)"+
+       (fora.barra?", "+nf(fora.barra)+" de barra excluída ("+brl(foraV)+")":"")+
+       (fora.aj?", "+fora.aj+" de ajuste":"")+"."+
+       (fora.sem?" "+nf(fora.sem)+" linha(s) sem assessor entram como <b>(sem barra)</b>.":"")+
+       (naBarra?" "+nf(naBarra)+" cobrança(s) sem cliente foram lançadas na própria barra.":"")+
+       (extra?"<br>"+extra:"")});
 }
 
 /* ---------------------------------------------------------------------
