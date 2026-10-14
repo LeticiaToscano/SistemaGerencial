@@ -453,7 +453,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v14/10 estrutura-11";
+const VERSAO = "v14/10 estrutura-12";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -716,29 +716,34 @@ function pintarResumo(){
         quadro("Contratos no mês",nf(ctr),"BM&F, DMA","azul")+
         quadro("Zeragem",nf(zer),"contratos encerrados pela mesa")+
         quadro("Receita AAI",brl(rec),"comissão repassada","verde")+
-        quadro("Bônus das faixas",brl(bonN),nAnt?brl(bon-bonN)+" de barra(s) no modelo antigo não entra(m)":"incentivo dos pontos","verde")+
+        quadro("Bônus das faixas",brl(bon),"incentivo dos pontos","verde")+
       '</div></div>'+
 
     '<div id="consBox"></div>'+
     '<div class="cx cx-luz heroi">'+
       '<div class="heroi-e"><div class="rot"><i></i>A pagar aos parceiros</div>'+
         '<div class="gr">'+brl(pag)+'</div>'+
-        '<div class="pe">É <b>'+pct((L[0]||{}).pct_parceiro)+'</b> do líquido, depois do imposto. '+
+        '<div class="pe">É <b>'+pct((L[0]||{}).pct_parceiro)+'</b> do líquido, depois do imposto'+
+          (nAnt?' (no modelo antigo, a base do parceiro troca o bônus por R$ 0,03 por contrato)':'')+'. '+
           'Do mesmo líquido, <b>'+brl(casa)+'</b> ficam na casa.</div></div>'+
       '<div class="extrato tx3">'+
         linhaEx("%","pc","Receita AAI",rec)+
-        linhaEx("+","ma","Bônus das faixas"+(nAnt?" (modelo novo)":""),bonN)+
-        (nAnt?linhaEx("+","ma","R$ 0,03 por contrato ("+nf(nAnt)+" no modelo antigo)",ctrA):"")+
+        linhaEx("+","ma","Bônus das faixas",bon)+
         linhaAb("−","me","Custos dos clientes das barras",cus,lista(
           linhaEx("·","me","Plataforma operacional",soma(L,"custo_operacional")," sub")+
           linhaEx("·","me","Automação",soma(L,"custo_automacao")," sub")+
           linhaEx("·","me","Akeloo",soma(L,"custo_akeloo")," sub")+
           (Math.abs(cus-soma(L,"custo_operacional")-soma(L,"custo_automacao")-soma(L,"custo_akeloo"))>0.5
             ? linhaEx("±","me","Ajuste manual de custo",cus-soma(L,"custo_operacional")-soma(L,"custo_automacao")-soma(L,"custo_akeloo")," sub"):"")))+
-        linhaEx("=","ig","Base dos parceiros",rmp," total")+
+        linhaEx("=","ig","Base",rmp," total")+
         linhaEx("−","me","Imposto ("+pct(alt)+")",-imp)+
         linhaEx("=","ig","Líquido",liq," total")+
-        linhaEx("=","ig",pct((L[0]||{}).pct_parceiro)+" para os parceiros",pag," final")+
+        (nAnt?linhaAb("=","ig","Para os parceiros",pag,lista(
+            linhaEx("·","pc","Modelo novo · "+pct((L[0]||{}).pct_parceiro)+" do líquido com bônus ("+nf(L.length-nAnt)+" barras)",
+              soma(L.filter(x=>x.cenario==="bonus"),"a_pagar")," sub")+
+            linhaEx("·","pc","Modelo antigo · "+pct((L[0]||{}).pct_parceiro)+" do líquido com R$ 0,03 por contrato ("+nf(nAnt)+" barras)",
+              soma(L.filter(x=>x.cenario!=="bonus"),"a_pagar")," sub"))," final")
+          :linhaEx("=","ig",pct((L[0]||{}).pct_parceiro)+" para os parceiros",pag," final"))+
       '</div></div>'+
 
     '<div id="tresBox"></div>'+
@@ -1388,7 +1393,7 @@ function topoMes(L){
       quadro("Contratos no mês",nf(soma(L,"contratos")),"BM&F, DMA","azul")+
       quadro("Zeragem",nf(soma(L,"zeragens")),"contratos encerrados pela mesa")+
       quadro("Receita AAI",brl(soma(L,"receita_aai")),"comissão repassada","verde")+
-      quadro("Bônus das faixas",brl(bonN),nAnt?brl(bon-bonN)+" de barra(s) no modelo antigo não entra(m)":"incentivo dos pontos","verde")+
+      quadro("Bônus das faixas",brl(bon),"incentivo dos pontos","verde")+
     '</div></div>';
 }
 function heroi(rot,val,texto,linhas){
