@@ -412,7 +412,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v14/10 importar-4";
+const VERSAO = "v14/10 importar-5";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -1461,6 +1461,10 @@ async function ler(files){
 }
 
 const nota=(txt,c)=>'<div class="aviso'+(c?" "+c:"")+'" style="margin:0 24px 16px">'+txt+'</div>';
+/* Regra dela (14/10): todo custo de OneClick vai para a barra do Saulo,
+   venha a linha com a barra que vier (ou sem nenhuma). */
+const BARRA_ONECLICK="SAULO GUIMARÃES AMARAL";
+const ehOneClick=d=>/one\s*click/i.test(String(d||""));
 const ehIncentivoAgregado=d=>/^incentivo\s*-\s*faixas?\s*trader/.test(d);
 
 async function lerMes(A, a, extra){
@@ -1484,9 +1488,10 @@ async function lerMes(A, a, extra){
     if(tipo==="Custo de Plataforma"){
       const d=txt(l[cDes]); if(!d) continue;
       let s=semDig(l[cSin]);
-      if(!s){ if(!b) continue; s="BARRA"+chaveBarra(b).slice(0,24); naBarra++; }
+      const bc=ehOneClick(d)?BARRA_ONECLICK:b;
+      if(!s){ if(!bc) continue; s="BARRA"+chaveBarra(bc).slice(0,24); naBarra++; }
       const v=num(l[cCom]); const liq=num(l[cLiq]);
-      custos.push({sinacor:s,descricao:d,cpf:cpf||null,nome:txt(l[cNom]),barra:b,tipo_produto:tipo,
+      custos.push({sinacor:s,descricao:d,cpf:cpf||null,nome:txt(l[cNom]),barra:bc,tipo_produto:tipo,
         produto:d,receita_genial:num(l[cRec]),valor_liquido:liq,comissao:(v!=null&&v!==0)?v:(liq||0)});
       continue;
     }
@@ -1654,13 +1659,14 @@ function lerTotal(file, wb, abas, a){
   for(const l of P.linhas){
     const d=txt(l[pDes]); if(!d) continue;
     let s=conta(l);
+    const bOne=ehOneClick(d)?BARRA_ONECLICK:null;
     if(!s){
-      const b2=txt(l[pAss]);
+      const b2=bOne||txt(l[pAss]);
       if(!b2) continue;           // sem conta e sem barra não há onde lançar
       s=chaveDaBarra(b2); naBarra++;
     }
     custos.push({sinacor:s, descricao:d, cpf:txt(l[pCpf]), nome:txt(l[pNom]),
-      barra:txt(l[pAss]), tipo_produto:txt(l[pTip]), produto:txt(l[pDes]),
+      barra:bOne||txt(l[pAss]), tipo_produto:txt(l[pTip]), produto:txt(l[pDes]),
       receita_genial:num(l[pRec]), valor_liquido:num(l[pLiq]), comissao:num(l[pCom])||0});
   }
 
