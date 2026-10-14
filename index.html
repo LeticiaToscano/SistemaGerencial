@@ -453,7 +453,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v14/10 estrutura-7";
+const VERSAO = "v14/10 estrutura-8";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -1832,7 +1832,7 @@ async function lerMes(A, a, extra){
     }
     if(ehIncentivoAgregado(desc)){ fora.inc++; continue; }
     if(desc===DESCARTAR[1]){ fora.aj++; continue; }
-    if(FORA.has(chaveBarra(l[cAss]))){ fora.barra++; foraV+=num(l[cCom])||0; continue; }
+    if(FORA.has(chaveBarra(l[cAss]))){ fora.barra++; foraV+=num(l[cCom])||0; }  // guardada; fica fora só do rateio
     if(!b) fora.sem++;
     receitas.push(linhaReceita(l, D.colunas, b));
   }
@@ -1939,8 +1939,9 @@ async function lerMes(A, a, extra){
          (K?" · Akeloo "+nf(nAk)+" × "+brl(AKELOO_PRECO)+" = "+brl(-nAk*AKELOO_PRECO):"")+".":
          "<br>A produção não trouxe custo de plataforma — ele vem do CRM.")+
        "<br>Fora da receita: "+fora.inc+" linha(s) do incentivo agregado (entra pelos pontos)"+
-       (fora.barra?", "+nf(fora.barra)+" de barra excluída ("+brl(foraV)+")":"")+
+       
        (fora.aj?", "+fora.aj+" de ajuste":"")+"."+
+       (fora.barra?" Fernando: "+nf(fora.barra)+" linha(s), "+brl(foraV)+" — guardadas, ficam fora do rateio dos parceiros.":"")+
        (fora.sem?" "+nf(fora.sem)+" linha(s) sem assessor entram como <b>(sem barra)</b>.":"")+
        (naBarra?" "+nf(naBarra)+" cobrança(s) sem cliente foram lançadas na própria barra.":"")+
        (extra?"<br>"+extra:"")});
@@ -1961,7 +1962,7 @@ function lerTotal(file, wb, abas, a){
 
   const receitas=[], fora={barra:0,sem:0}; let foraV=0;
   for(const l of R.linhas){
-    if(FORA.has(chaveBarra(l[cAss]))){ fora.barra++; foraV+=num(l[cCom])||0; continue; }
+    if(FORA.has(chaveBarra(l[cAss]))){ fora.barra++; foraV+=num(l[cCom])||0; }  // guardada; fica fora só do rateio
     const b=txt(l[cAss]); if(!b) fora.sem++;
     receitas.push(linhaReceita(l,R.colunas,b));
   }
@@ -2034,7 +2035,7 @@ function lerTotal(file, wb, abas, a){
     bonus:[bonus.length, bonus.reduce((s,x)=>s+x.incentivo,0)],
     custo:[custos.length, custos.reduce((s,x)=>s+(x.comissao||0),0)],
     comp:comp, alerta:aviso,
-    pe:(fora.barra?nf(fora.barra)+" linhas de barra excluída ficaram fora ("+brl(foraV)+"). ":"")+
+    pe:(fora.barra?"Fernando: "+nf(fora.barra)+" linha(s), "+brl(foraV)+" — guardadas, ficam fora do rateio dos parceiros. ":"")+
        (fora.sem?nf(fora.sem)+" linha(s) sem assessor entram como <b>(sem barra)</b>. ":"")+
        (naBarra?nf(naBarra)+" cobrança(s) de plataforma vieram sem cliente e foram lançadas "+
         "<b>na própria barra</b>.":"")});
