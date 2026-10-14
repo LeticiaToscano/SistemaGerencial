@@ -371,6 +371,8 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
 .faixa-t{font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--txt);
   margin:8px 4px 12px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
 .faixa-t span{font-size:11.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--fraco)}
+.blk{margin-bottom:16px}
+.blk .extrato{padding:4px 16px 16px}
 .hx{border-left:4px solid var(--hx)}
 .hx-ciano{--hx:var(--ciano)}.hx-ambar{--hx:var(--ambar)}.hx-verde{--hx:var(--verde)}
 .hx .heroi-e .rot{color:var(--hx)}
@@ -451,7 +453,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v14/10 estrutura-5";
+const VERSAO = "v14/10 estrutura-6";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -574,7 +576,8 @@ async function escolherMes(){
 function mesMudou(){ COMP=el("mes").value+"-01"; EST=null; ir(VISTA); }
 
 /* ================= navegação ================= */
-const ABAS=[["resumo","Fechamento"],["pagamentos","Pagamentos"],["parceiro","Evolução"],
+const ABAS=[["resumo","Fechamento"],["genial","Gerencial Genial"],["sejalivre","Gerencial Seja Livre"],
+  ["consolidado","Consolidado"],["pagamentos","Pagamentos"],["parceiro","Evolução"],
   ["casa","A casa"],["importar","Importar"],["edicoes","Edições"]];
 const CRUMB={genial:"GERENCIAL GENIAL · PLANILHA LIVRE",sejalivre:"GERENCIAL SEJA LIVRE",
   consolidado:"CONSOLIDADO",resumo:"FECHAMENTO DO MÊS",pagamentos:"PAGAMENTOS AOS PARCEIROS",
@@ -715,6 +718,7 @@ function pintarResumo(){
         quadro("Bônus das faixas",brl(bonN),nAnt?brl(bon-bonN)+" de barra(s) no modelo antigo não entra(m)":"incentivo dos pontos","verde")+
       '</div></div>'+
 
+    '<div id="consBox"></div>'+
     '<div class="cx cx-luz heroi">'+
       '<div class="heroi-e"><div class="rot"><i></i>A pagar aos parceiros</div>'+
         '<div class="gr">'+brl(pag)+'</div>'+
@@ -744,13 +748,15 @@ function pintarResumo(){
 }
 
 async function pintarTres(){
-  const box=el("tresBox"); if(!box) return;
-  if(!(EST && EST_COMP===COMP)) box.innerHTML='<div class="carreg" style="padding:24px"><div class="giro"></div>Carregando Genial, Seja Livre e Consolidado…</div>';
+  const box=el("consBox"); if(!box) return;
+  if(!(EST && EST_COMP===COMP)) box.innerHTML='<div class="carreg" style="padding:24px"><div class="giro"></div>Carregando o líquido da Seja Livre…</div>';
   try{
-    const E=await carregarEstrutura(); const b=el("tresBox"); if(!b) return;
-    if(!E || (!(E.producao||[]).length && !Number(E.incentivo&&E.incentivo.valor))){ b.innerHTML=""; return; }
-    b.innerHTML=quadrosTres(E,contas(E));
-  }catch(e){ const b=el("tresBox"); if(b) b.innerHTML='<div class="aviso r">Não foi possível carregar os quadros Genial e Seja Livre: '+esc((e&&e.message)||e)+'</div>'; }
+    const E=await carregarEstrutura(); const c=el("consBox"), t=el("tresBox"); if(!c) return;
+    if(!E || (!(E.producao||[]).length && !Number(E.incentivo&&E.incentivo.valor))){ c.innerHTML=""; if(t) t.innerHTML=""; return; }
+    const C=contas(E); ABRE=1000;
+    c.innerHTML=painelConsolidado(E,C);
+    if(t) t.innerHTML=painelGenial(E,C)+painelSejaLivre(E,C);
+  }catch(e){ const c=el("consBox"); if(c) c.innerHTML='<div class="aviso r">Não foi possível carregar os quadros Genial e Seja Livre: '+esc((e&&e.message)||e)+'</div>'; }
 }
 function secBarras(){
   const l=filtradas();
@@ -1447,54 +1453,89 @@ function painelTres(cor,rot,val,texto,linhas){
       '<div class="gr">'+brl(val)+'</div><div class="pe">'+texto+'</div></div>'+
     '<div class="extrato tx3">'+linhas+'</div></div>';
 }
-function quadrosTres(E,C){
-  ABRE=1000;
+const painelGenial=(E,C)=>painelTres("ciano","Gerencial Genial · chega na Seja Livre",C.liqG,
+  'Planilha Livre: tudo o que a Genial desconta antes de o dinheiro chegar. A Comissão bruta da NF é <b>'+brl(C.bruta)+
+  '</b> e o IR retido, <b>'+brl(C.ir)+'</b>.',linhasGenial(E,C));
+const painelSejaLivre=(E,C)=>painelTres("ambar","Gerencial Seja Livre · pago por fora",C.fora,
+  'O que a Seja Livre paga depois que o dinheiro entra: o Fernando, as plataformas, o imposto e os <b>'+
+  nf(E.parceiros.length)+'</b> parceiros.',linhasSejaLivre(E,C));
+function painelConsolidado(E,C){
   const fora=lista(
     linhaEx("−","me","Fernando",-C.fern," sub")+linhaEx("−","me","Automação",C.aut," sub")+
     linhaEx("−","me","Akeloo",C.ake," sub")+linhaEx("−","me","Imposto Seja Livre",-C.imp," sub")+
     linhaEx("−","me","Parceiros",-C.pag," sub"));
-  return '<div class="faixa-t">Genial · Seja Livre · Consolidado <span>clique em uma linha para ver o detalhe</span></div>'+
-    painelTres("ciano","Gerencial Genial · chega na Seja Livre",C.liqG,
-      'Planilha Livre: tudo o que a Genial desconta antes de o dinheiro chegar. A Comissão bruta da NF é <b>'+brl(C.bruta)+
-      '</b> e o IR retido, <b>'+brl(C.ir)+'</b>.',linhasGenial(E,C))+
-    painelTres("ambar","Gerencial Seja Livre · pago por fora",C.fora,
-      'O que a Seja Livre paga depois que o dinheiro entra: o Fernando, as plataformas, o imposto e os <b>'+
-      nf(E.parceiros.length)+'</b> parceiros.',linhasSejaLivre(E,C))+
-    painelTres("verde","Consolidado · líquido da Seja Livre",C.casa,
-      '<span class="conta">'+brl(C.liqG)+' <em>−</em> '+brl(-C.fora)+' <em>=</em> <b>'+brl(C.casa)+'</b></span>'+
-      'A Genial entrega, a Seja Livre paga por fora, e o que sobra fica na casa.',
-      linhaEx("+","pc","Gerencial Genial · comissão líquida",C.liqG)+
-      linhaAb("−","me","Gerencial Seja Livre · pago por fora",C.fora,fora)+
-      linhaEx("=","ig","Líquido da Seja Livre",C.casa," final"));
+  return painelTres("verde","Líquido da Seja Livre",C.casa,
+    '<span class="conta">'+brl(C.liqG)+' <em>−</em> '+brl(-C.fora)+' <em>=</em> <b>'+brl(C.casa)+'</b></span>'+
+    'A Genial entrega, a Seja Livre paga por fora, e o que sobra fica na casa.',
+    linhaEx("+","pc","Gerencial Genial · comissão líquida",C.liqG)+
+    linhaAb("−","me","Gerencial Seja Livre · pago por fora",C.fora,fora)+
+    linhaEx("=","ig","Líquido da Seja Livre",C.casa," final"));
+}
+function bloco(ic,cor,tt,st,chips,miolo){
+  return '<div class="cx sec blk">'+secTopo(ic,cor,tt,st,chips)+'<div class="extrato tx3">'+miolo+'</div></div>';
 }
 
-/* ---------- ABA 1 · GERENCIAL GENIAL ---------- */
+/* ---------- PÁGINA · GERENCIAL GENIAL (tudo aberto) ---------- */
 function vGenial(){ comEstrutura(function(E,C,L){
-  el("alvo").innerHTML=topoMes(L)+
-    heroi("Chega na Seja Livre",C.liqG,
-      'É a comissão líquida da Genial: produção, incentivo e custo de plataforma, menos o IR de <b>'+pct(E.ir_pct)+
-      '</b>. Inclui a barra do Fernando. Clique em uma linha para ver o detalhe.',
-      linhasGenial(E,C));
+  ABRE=0;
+  el("alvo").innerHTML=topoMes(L)+painelGenial(E,C)+
+    bloco(IC.lista,"","Produção","comissão do mês por produto · clique em um produto para ver as barras",
+      '<span class="chip"><b>'+nf(E.producao.length)+'</b> produtos</span>',
+      detProducao(E)+linhaEx("=","ig","Total da produção",C.prod," total"))+
+    bloco(IC.torta,"","Incentivo","bônus dos pontos (Faixas Trader), por barra",
+      '<span class="chip"><b>'+nf(E.incentivo.clientes)+'</b> clientes</span>',
+      '<div class="det on" style="margin-left:0;border:0;padding:0">'+detIncentivo(E)+'</div>'+
+      linhaEx("=","ig","Total do incentivo",C.inc," total"))+
+    bloco(IC.tela,"","Custo de Plataforma","descontado pela Genial · clique em uma plataforma para ver as barras",
+      '<span class="chip"><b>'+nf(sm(E.plataforma,"linhas"))+'</b> linhas</span>',
+      detPlataforma(E)+linhaEx("=","ig","Total do custo de plataforma",C.plat," total"))+
+    bloco(IC.nota,"","Comissão","o que a Genial paga",'',
+      linhaEx("+","pc","Produção",C.prod)+linhaEx("+","ma","Incentivo",C.inc)+
+      linhaEx("−","me","Custo de Plataforma",C.plat)+
+      linhaEx("=","ig","Comissão bruta (valor da NF)",C.bruta," total")+
+      linhaEx("−","me","IR "+pct(E.ir_pct),-C.ir)+
+      linhaEx("=","ig","Comissão líquida · chega na Seja Livre",C.liqG," final"));
 });}
 
-/* ---------- ABA 2 · GERENCIAL SEJA LIVRE ---------- */
+/* ---------- PÁGINA · GERENCIAL SEJA LIVRE (tudo aberto) ---------- */
 function vSejaLivre(){ comEstrutura(function(E,C,L){
-  el("alvo").innerHTML=topoMes(L)+
-    heroi("Fica para a casa",C.casa,
-      'Da entrada de <b>'+brl(C.liqG)+'</b>, saem o Fernando, as plataformas pagas por fora, o imposto e os parceiros. '+
-      'Clique em uma linha para ver o detalhe.',
-      linhasSejaLivre(E,C));
+  ABRE=0;
+  const F=E.fernando||{};
+  const tab=(it,cols)=>'<div class="det on" style="margin-left:0;border:0;padding:0">'+tabDet(it,cols)+'</div>';
+  el("alvo").innerHTML=topoMes(L)+painelSejaLivre(E,C)+
+    bloco(IC.escudo,"","Fernando","só para enxergar · apurado em modelo separado, sai do total da casa",
+      '<span class="chip"><b>'+nf(F.clientes)+'</b> clientes</span>',
+      (Number(F.producao)?linhaEx("+","pc","Produção",F.producao):"")+
+      linhaEx("+","ma","Incentivo",F.incentivo)+
+      linhaEx("−","me","Custo de plataforma",F.plataforma)+
+      tab(F.plataforma_itens,[["nome","Plataforma"],["linhas","Linhas","n","i"],["valor","R$","n","r"]])+
+      linhaEx("=","ig","Receita do Fernando",C.fern," total"))+
+    bloco(IC.tela,"","Plataformas pagas pela Seja Livre","não passam pela Genial · clique para ver as barras",'',
+      lista(E.automacao.map(p=>subAb(esc(p.nome),sm(p.itens,"valor"),
+        tabDet(p.itens,[["barra","Barra"],["linhas","Clientes","n","i"],["valor","R$","n","r"]]))).join("")+
+        subAb("Akeloo",C.ake,tabDet(E.akeloo,[["barra","Barra"],["linhas","Clientes","n","i"],["valor","R$","n","r"]])))+
+      linhaEx("=","ig","Total das plataformas",r2(C.aut+C.ake)," total"))+
+    bloco(IC.nota,"","Imposto Seja Livre","os "+pct(E.imposto_pct)+" já incluem o IR retido pela Genial",'',
+      linhaEx("−","me","Imposto total ("+pct(E.imposto_pct)+" sobre a base de cada barra)",-C.impT)+
+      linhaEx("+","ma","IR "+pct(E.ir_pct)+" já retido pela Genial",C.ir)+
+      linhaEx("=","ig","Imposto que a Seja Livre paga",-C.imp," total"))+
+    bloco(IC.lista,"","Pagamento aos parceiros","clique em um parceiro para ver as barras",
+      '<span class="chip"><b>'+nf(E.parceiros.length)+'</b> parceiros</span>',
+      lista(E.parceiros.map(p=>subAb(esc(p.parceiro)+' <span class="fr">'+nf(p.barras)+' barra(s)</span>',-p.valor,
+        tabDet(p.itens,[["barra","Barra"],["modelo","Modelo"],["liquido","Líquido","n","r"],["valor","A pagar","n","r"],["status","Status"]]))).join(""))+
+      linhaEx("=","ig","Total pago aos parceiros",-C.pag," total"))+
+    bloco(IC.casa,"","O que fica para a casa","",'',
+      linhaEx("+","pc","Entrada da Genial (comissão líquida)",C.liqG)+
+      linhaEx("−","me","Fernando",-C.fern)+linhaEx("−","me","Automação",C.aut)+
+      linhaEx("−","me","Akeloo",C.ake)+linhaEx("−","me","Imposto Seja Livre",-C.imp)+
+      linhaEx("−","me","Parceiros",-C.pag)+
+      linhaEx("=","ig","Fica para a casa",C.casa," final"));
 });}
 
-/* ---------- ABA 3 · CONSOLIDADO ---------- */
+/* ---------- PÁGINA · CONSOLIDADO ---------- */
 function vConsolidado(){ comEstrutura(function(E,C,L){
-  el("alvo").innerHTML=topoMes(L)+
-    heroi("Líquido da Seja Livre",C.casa,
-      'A Genial entrega <b>'+brl(C.liqG)+'</b> e a Seja Livre paga por fora <b>'+brl(-C.fora)+
-      '</b>. Clique em uma linha para ver o detalhe.',
-      linhaAb("+","pc","Gerencial Genial · comissão líquida",C.liqG,lista(linhasGenial(E,C)))+
-      linhaAb("−","me","Gerencial Seja Livre · pago por fora",C.fora,lista(linhasSejaLivre(E,C)))+
-      linhaEx("=","ig","Líquido",C.casa," final"));
+  ABRE=0;
+  el("alvo").innerHTML=topoMes(L)+painelConsolidado(E,C)+painelGenial(E,C)+painelSejaLivre(E,C);
 });}
 
 /* =====================================================================
