@@ -368,19 +368,20 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
 .ex.sub .sg{width:20px;height:20px;flex:0 0 20px;font-size:11px;border-radius:6px}
 .ex.sub .rt{font-size:13px;color:var(--dim)}
 .ex.sub .vl{font-size:13.5px;font-weight:600}
-.tri3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:16px;align-items:start}
-.tri .tri-t{padding:22px 24px 6px}
-.tri .rot{font-size:11px;color:var(--verde);letter-spacing:1.4px;font-weight:700;text-transform:uppercase;
-  display:flex;align-items:center;gap:8px}
-.tri .rot i{width:7px;height:7px;border-radius:50%;background:currentColor;display:block}
-.tri-n{font-size:12px;color:var(--fraco);margin-top:6px}
-.tri-v{font-size:34px;font-weight:800;letter-spacing:-1.5px;margin-top:10px;color:var(--verde-claro);
+.faixa-t{font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--txt);
+  margin:8px 4px 12px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.faixa-t span{font-size:11.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--fraco)}
+.hx{border-left:4px solid var(--hx)}
+.hx-ciano{--hx:var(--ciano)}.hx-ambar{--hx:var(--ambar)}.hx-verde{--hx:var(--verde)}
+.hx .heroi-e .rot{color:var(--hx)}
+.hx-ciano .heroi-e .gr{color:var(--ciano)}
+.hx-ambar .heroi-e .gr{color:var(--ambar)}
+.hx-verde{box-shadow:0 0 0 1px rgba(46,229,157,.25),0 18px 50px -20px rgba(46,229,157,.35)}
+.hx .conta{display:block;font-size:15px;white-space:nowrap;font-weight:700;color:var(--dim);margin-bottom:10px;
   font-variant-numeric:tabular-nums}
-.tri .extrato{padding:10px 14px 14px}
-.tri .ex{padding:12px 12px;gap:10px}
-.tri .ex .rt{font-size:13px}
-.tri .ex .vl{font-size:13.5px}
-@media(max-width:1100px){.tri3{grid-template-columns:1fr}}
+.hx .conta em{font-style:normal;color:var(--fraco);margin:0 4px}
+.hx .conta b{color:var(--verde-claro)}
+.hx .extrato{align-self:center}
 .tx3 .ex:not(.ab)::after{content:"";width:12px;flex:0 0 12px}
 .ex .fr{color:var(--fraco);font-size:11.5px}
 .det{display:none;margin:-3px 0 9px 18px;border-left:2px solid rgba(46,229,157,.22);padding:6px 0 4px 10px}
@@ -450,7 +451,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v14/10 estrutura-4";
+const VERSAO = "v14/10 estrutura-5";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -1439,9 +1440,11 @@ function linhasSejaLivre(E,C){
     linhaEx("=","ig","Fica para a casa",C.casa," final");
 }
 
-function cartaoTres(rot,tt,val,linhas){
-  return '<div class="cx tri"><div class="tri-t"><div class="rot"><i></i>'+rot+'</div>'+
-    '<div class="tri-n">'+tt+'</div><div class="tri-v'+(Number(val)<0?" rubro":"")+'">'+brl(val)+'</div></div>'+
+/* painel grande, no formato do "A pagar aos parceiros", com a cor de cada lado */
+function painelTres(cor,rot,val,texto,linhas){
+  return '<div class="cx cx-luz heroi hx hx-'+cor+'">'+
+    '<div class="heroi-e"><div class="rot"><i></i>'+rot+'</div>'+
+      '<div class="gr">'+brl(val)+'</div><div class="pe">'+texto+'</div></div>'+
     '<div class="extrato tx3">'+linhas+'</div></div>';
 }
 function quadrosTres(E,C){
@@ -1450,14 +1453,19 @@ function quadrosTres(E,C){
     linhaEx("−","me","Fernando",-C.fern," sub")+linhaEx("−","me","Automação",C.aut," sub")+
     linhaEx("−","me","Akeloo",C.ake," sub")+linhaEx("−","me","Imposto Seja Livre",-C.imp," sub")+
     linhaEx("−","me","Parceiros",-C.pag," sub"));
-  return '<div class="tri3">'+
-    cartaoTres("Gerencial Genial","Planilha Livre · chega na Seja Livre",C.liqG,linhasGenial(E,C))+
-    cartaoTres("Gerencial Seja Livre","pago por fora · fica para a casa",C.casa,linhasSejaLivre(E,C))+
-    cartaoTres("Consolidado","Genial − Seja Livre = líquido",C.casa,
-      linhaEx("+","pc","Comissão líquida da Genial",C.liqG)+
-      linhaAb("−","me","Pago por fora pela Seja Livre",C.fora,fora)+
-      linhaEx("=","ig","Líquido",C.casa," final"))+
-  '</div>';
+  return '<div class="faixa-t">Genial · Seja Livre · Consolidado <span>clique em uma linha para ver o detalhe</span></div>'+
+    painelTres("ciano","Gerencial Genial · chega na Seja Livre",C.liqG,
+      'Planilha Livre: tudo o que a Genial desconta antes de o dinheiro chegar. A Comissão bruta da NF é <b>'+brl(C.bruta)+
+      '</b> e o IR retido, <b>'+brl(C.ir)+'</b>.',linhasGenial(E,C))+
+    painelTres("ambar","Gerencial Seja Livre · pago por fora",C.fora,
+      'O que a Seja Livre paga depois que o dinheiro entra: o Fernando, as plataformas, o imposto e os <b>'+
+      nf(E.parceiros.length)+'</b> parceiros.',linhasSejaLivre(E,C))+
+    painelTres("verde","Consolidado · líquido da Seja Livre",C.casa,
+      '<span class="conta">'+brl(C.liqG)+' <em>−</em> '+brl(-C.fora)+' <em>=</em> <b>'+brl(C.casa)+'</b></span>'+
+      'A Genial entrega, a Seja Livre paga por fora, e o que sobra fica na casa.',
+      linhaEx("+","pc","Gerencial Genial · comissão líquida",C.liqG)+
+      linhaAb("−","me","Gerencial Seja Livre · pago por fora",C.fora,fora)+
+      linhaEx("=","ig","Líquido da Seja Livre",C.casa," final"));
 }
 
 /* ---------- ABA 1 · GERENCIAL GENIAL ---------- */
