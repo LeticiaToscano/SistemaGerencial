@@ -413,7 +413,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v14/10 modelo-1";
+const VERSAO = "v14/10 custos-1";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -672,7 +672,7 @@ function pintarResumo(){
         quadro("Contratos no mês",nf(ctr),"BM&F, DMA","azul")+
         quadro("Zeragem",nf(zer),"contratos encerrados pela mesa")+
         quadro("Receita AAI",brl(rec),"comissão repassada","verde")+
-        quadro("Bônus das faixas",brl(bon),"incentivo dos pontos","verde")+
+        quadro("Bônus das faixas",brl(bonN),nAnt?brl(bon-bonN)+" de barra(s) no modelo antigo não entra(m)":"incentivo dos pontos","verde")+
       '</div></div>'+
 
     '<div class="cx cx-luz heroi">'+
@@ -684,7 +684,11 @@ function pintarResumo(){
         linhaEx("%","pc","Receita AAI",rec)+
         linhaEx("+","ma","Bônus das faixas"+(nAnt?" (modelo novo)":""),bonN)+
         (nAnt?linhaEx("+","ma","R$ 0,03 por contrato ("+nf(nAnt)+" no modelo antigo)",ctrA):"")+
-        linhaEx("−","me","Custo de plataforma",cus)+
+        linhaEx("−","me","Plataforma operacional",soma(L,"custo_operacional"))+
+        linhaEx("−","me","Automação",soma(L,"custo_automacao"))+
+        linhaEx("−","me","Akeloo",soma(L,"custo_akeloo"))+
+        (Math.abs(cus-soma(L,"custo_operacional")-soma(L,"custo_automacao")-soma(L,"custo_akeloo"))>0.5
+          ? linhaEx("±","me","Ajuste manual de custo",cus-soma(L,"custo_operacional")-soma(L,"custo_automacao")-soma(L,"custo_akeloo")):"")+
         linhaEx("=","ig","Receita − plataformas",rmp," total")+
         linhaEx("−","me","Imposto ("+pct(alt)+")",-imp)+
         linhaEx("=","ig","Líquido",liq," total")+
@@ -764,7 +768,8 @@ function tabela(l){
         '<td class="n f">'+(Number(x.zeragens)?nf(x.zeragens):"—")+'</td>'+
         '<td class="n">'+vl(x.receita_aai)+'</td>'+
         '<td class="n">'+vl(x.extra_modelo)+'</td>'+
-        '<td class="n'+(Number(x.custos_plataforma)<0?" rubro":"")+'">'+vl(x.custos_plataforma)+'</td>'+
+        '<td class="n'+(Number(x.custos_plataforma)<0?" rubro":"")+'" title="Plataforma operacional '+brlx(x.custo_operacional)+
+          ' · Automação '+brlx(x.custo_automacao)+' · Akeloo '+brlx(x.custo_akeloo)+'">'+vl(x.custos_plataforma)+'</td>'+
         '<td class="n s d">'+vl(x.liquido)+'</td>'+
         '<td class="n f">'+pct(x.pct_parceiro)+'</td>'+
         '<td class="n" style="font-weight:800'+(neg?";color:var(--vermelho)":"")+'">'+vl(x.a_pagar)+'</td>'+
@@ -861,7 +866,11 @@ function editar(i){
       (x.cenario==="bonus"
         ? linhaEx("+","ma","Bônus dos pontos",x.extra_modelo)
         : linhaEx("+","ma","R$ 0,03 × "+nf(x.contratos)+" contratos",x.extra_modelo))+
-      linhaEx("−","me","Custo de plataforma",x.custos_plataforma)+
+      linhaEx("−","me","Plataforma operacional",x.custo_operacional)+
+      linhaEx("−","me","Automação",x.custo_automacao)+
+      linhaEx("−","me","Akeloo",x.custo_akeloo)+
+      (Math.abs(Number(x.custos_plataforma)-Number(x.custo_operacional)-Number(x.custo_automacao)-Number(x.custo_akeloo))>0.005
+        ? linhaEx("±","me","Ajuste manual de custo",Number(x.custos_plataforma)-Number(x.custo_operacional)-Number(x.custo_automacao)-Number(x.custo_akeloo)):"")+
       linhaEx("=","ig","Receita − plataformas",x.receita_menos_plataformas," total")+
       linhaEx("−","me","Imposto ("+pct(x.imposto_pct)+")",-(Number(x.receita_menos_plataformas)-Number(x.liquido)))+
       linhaEx("=","ig","Líquido",x.liquido," total")+
@@ -930,10 +939,10 @@ function baixarCSV(nome,cab,linhas){
 function baixarResumo(){
   baixarCSV("fechamento_"+String(COMP).slice(0,7)+".csv",
     ["barra","parceiro","modelo","novos clientes","contratos","zeragens","receita AAI","bonus",
-     "R$ 0,03 por contrato","custos de plataforma","receita menos plataformas","liquido","%",
+     "R$ 0,03 por contrato","custos de plataforma","plataforma operacional","automacao","akeloo","receita menos plataformas","liquido","%",
      "a pagar (modelo da barra)","liquido cenario R$0,03","a pagar cenario R$0,03","situacao","editado"],
     filtradas().map(x=>[x.barra,x.parceiro,x.modelo,x.novos_clientes,x.contratos,x.zeragens,x.receita_aai,
-      x.bonus,x.valor_por_contrato,x.custos_plataforma,x.receita_menos_plataformas,x.liquido,x.pct_parceiro,
+      x.bonus,x.valor_por_contrato,x.custos_plataforma,x.custo_operacional,x.custo_automacao,x.custo_akeloo,x.receita_menos_plataformas,x.liquido,x.pct_parceiro,
       x.a_pagar,x.liquido_contrato,x.pagar_contrato,x.status_pagamento||"aberto",
       x.editado?x.campos_ajustados:""]));
 }
