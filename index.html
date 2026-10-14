@@ -453,7 +453,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v14/10 estrutura-8";
+const VERSAO = "v14/10 estrutura-9";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -1324,8 +1324,10 @@ async function vCasa(){
 let EST=null, EST_COMP=null, EST_L=null, ABRE=0;
 async function carregarEstrutura(){
   if(EST && EST_COMP===COMP) return EST;
+  /* no Fechamento as barras do mês já estão carregadas: não consulta de novo */
+  const temL=LINHAS.length && String(LINHAS[0].competencia).slice(0,10)===String(COMP).slice(0,10);
   const [r,l]=await Promise.all([sb.rpc("gerencial_estrutura",{p_competencia:COMP}),
-    sb.from("vw_gerencial_resumo").select("*").eq("competencia",COMP)]);
+    temL?Promise.resolve({data:LINHAS}):sb.from("vw_gerencial_resumo").select("*").eq("competencia",COMP)]);
   if(r.error) throw r.error; if(l.error) throw l.error;
   EST=r.data; EST_L=l.data||[]; EST_COMP=COMP; return EST;
 }
