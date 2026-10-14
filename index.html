@@ -453,7 +453,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v14/10 estrutura-9";
+const VERSAO = "v14/10 estrutura-10";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -1430,7 +1430,7 @@ function linhasGenial(E,C){
 function linhasSejaLivre(E,C){
   const F=E.fernando||{};
   const detF=lista(
-    (Number(F.producao)?subFx("Produção",F.producao):"")+
+    (Number(F.producao)?subAb("Produção",F.producao,tabDet(E.fernando_producao_itens,[["tipo","Produto"],["linhas","Linhas","n","i"],["valor","R$","n","r"]])):"")+
     subFx("Incentivo ("+nf(F.clientes)+" clientes)",F.incentivo)+
     subAb("Custo de plataforma",F.plataforma,
       tabDet(F.plataforma_itens,[["nome","Plataforma"],["linhas","Linhas","n","i"],["valor","R$","n","r"]])));
@@ -1509,7 +1509,7 @@ function vSejaLivre(){ comEstrutura(function(E,C,L){
   el("alvo").innerHTML=topoMes(L)+painelSejaLivre(E,C)+
     bloco(IC.escudo,"","Fernando","só para enxergar · apurado em modelo separado, sai do total da casa",
       '<span class="chip"><b>'+nf(F.clientes)+'</b> clientes</span>',
-      (Number(F.producao)?linhaEx("+","pc","Produção",F.producao):"")+
+      (Number(F.producao)?linhaEx("+","pc","Produção",F.producao)+tab(E.fernando_producao_itens,[["tipo","Produto"],["linhas","Linhas","n","i"],["valor","R$","n","r"]]):"")+
       linhaEx("+","ma","Incentivo",F.incentivo)+
       linhaEx("−","me","Custo de plataforma",F.plataforma)+
       tab(F.plataforma_itens,[["nome","Plataforma"],["linhas","Linhas","n","i"],["valor","R$","n","r"]])+
