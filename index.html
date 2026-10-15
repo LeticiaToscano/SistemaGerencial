@@ -453,7 +453,7 @@ tfoot td{font-weight:800;border-top:1px solid var(--linha2);border-bottom:none;
    tabelas do gerencial só abrem para quem está em gerencial_usuarios. */
 const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
-const VERSAO = "v14/10 estrutura-12";
+const VERSAO = "v15/10 comercial-autorizacao";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el=i=>document.getElementById(i);
@@ -578,11 +578,11 @@ function mesMudou(){ COMP=el("mes").value+"-01"; EST=null; ir(VISTA); }
 /* ================= navegação ================= */
 const ABAS=[["resumo","Fechamento"],["genial","Gerencial Genial"],["sejalivre","Gerencial Seja Livre"],
   ["consolidado","Consolidado"],["pagamentos","Pagamentos"],["parceiro","Evolução"],
-  ["casa","A casa"],["importar","Importar"],["edicoes","Edições"]];
+  ["casa","A casa"],["comercial","Comercial"],["importar","Importar"],["edicoes","Edições"]];
 const CRUMB={genial:"GERENCIAL GENIAL · PLANILHA LIVRE",sejalivre:"GERENCIAL SEJA LIVRE",
   consolidado:"CONSOLIDADO",resumo:"FECHAMENTO DO MÊS",pagamentos:"PAGAMENTOS AOS PARCEIROS",
   parceiro:"EVOLUÇÃO DO PARCEIRO",casa:"O QUE FICA NA CASA",importar:"ENTRADA DE DADOS",
-  edicoes:"O QUE FOI EDITADO À MÃO"};
+  edicoes:"O QUE FOI EDITADO À MÃO",comercial:"LIBERAÇÃO DE PARCEIROS AO COMERCIAL"};
 let VISTA="resumo";
 function pintarNav(){
   el("nav").innerHTML=ABAS.map(a=>'<button class="'+(VISTA===a[0]?"on":"")+'" onclick="ir(\''+a[0]+'\')">'+a[1]+'</button>').join("");
@@ -592,7 +592,7 @@ function ir(v){
   VISTA=v; pintarNav(); el("crumb").textContent="GERENCIAL · "+CRUMB[v];
   el("alvo").innerHTML='<div class="carreg"><div class="giro"></div>Carregando…</div>';
   ({genial:vGenial,sejalivre:vSejaLivre,consolidado:vConsolidado,resumo:vResumo,pagamentos:vPagamentos,parceiro:vParceiro,casa:vCasa,
-    importar:vImportar,edicoes:vEdicoes}[v])();
+    importar:vImportar,edicoes:vEdicoes,comercial:vComercial}[v])();
 }
 
 /* ---------------------------------------------------------------------
@@ -1578,6 +1578,45 @@ async function vEdicoes(){
         '<td class="d" style="white-space:normal;max-width:250px">'+(a.motivo||"—")+'</td>'+
         '<td class="f">'+(a.quem||"—")+'</td></tr>';
     }).join("")+'</tbody></table></div></div>';
+}
+
+/* =====================================================================
+   COMERCIAL — o parceiro só aparece para o Victor/Vinicius depois de
+   autorizado aqui. A trava está no banco (comercial_parceiros /
+   comercial_painel); esta tela só liga e desliga.
+   ===================================================================== */
+async function vComercial(){
+  const r=await sb.rpc("comercial_parceiros");
+  if(r.error) return falha(r.error);
+  const l=r.data||[];
+  const pend=l.filter(x=>!x.autorizado).length;
+  const nomeCom=c=>String(c||"").charAt(0).toUpperCase()+String(c||"").slice(1);
+  el("alvo").innerHTML='<div class="cx sec">'+
+    secTopo(IC.escudo,"a","Parceiros no painel comercial",
+      "o parceiro só aparece para o comercial depois de autorizado aqui",
+      '<span class="chip"><b>'+nf(pend)+'</b> aguardando</span><span class="chip"><b>'+nf(l.length-pend)+'</b> liberados</span>')+
+    (l.length?'<div class="rola"><table><thead><tr><th>Comercial</th><th>Parceiro</th><th>Barra</th>'+
+      '<th>Situação</th><th>Quem liberou</th><th></th></tr></thead><tbody>'+
+    l.map(x=>'<tr><td style="font-weight:600">'+esc(nomeCom(x.comercial))+'</td>'+
+      '<td>'+esc(x.parceiro)+(x.etiqueta?' <span class="f">· etiqueta</span>':'')+'</td>'+
+      '<td class="d">'+esc(x.barra)+'</td>'+
+      '<td>'+(x.autorizado?'<span style="color:var(--verde);font-weight:600">Liberado</span>'
+                          :'<span style="color:#FFB020;font-weight:600">Aguardando</span>')+'</td>'+
+      '<td class="f">'+(x.autorizado?esc(x.autorizado_por||"—")+(x.autorizado_em?' · '+fmtData(x.autorizado_em):''):'—')+'</td>'+
+      '<td class="n"><button class="bt" style="padding:5px 12px;font-size:11.5px;'+
+        (x.autorizado?'':'border-color:rgba(46,229,157,.4);color:var(--verde)')+'" '+
+        'onclick="autorizarComercial('+Number(x.id)+','+(!x.autorizado)+',this)">'+
+        (x.autorizado?'Retirar':'Autorizar')+'</button></td></tr>').join("")+
+    '</tbody></table></div>':'<div class="vazio">Nenhum parceiro cadastrado nas carteiras do comercial.</div>')+
+  '</div>';
+}
+async function autorizarComercial(id,sim,bt){
+  if(!sim && !confirm("Retirar este parceiro do painel comercial? Ele some na hora para o comercial.")) return;
+  if(bt) bt.disabled=true;
+  const r=await sb.rpc("comercial_autorizar",{p_id:id,p_autorizar:sim});
+  if(r.error){ if(bt) bt.disabled=false; return tor("Não foi possível salvar",esc(r.error.message),true); }
+  tor(sim?"Parceiro liberado":"Parceiro retirado", sim?"Já aparece no painel do comercial.":"Não aparece mais para o comercial.");
+  vComercial();
 }
 
 /* =====================================================================
